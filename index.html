@@ -3,64 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>餐廳預約系統</title>
+    <title>訂位，好像不錯。</title>
     <style>
-        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; line-height: 1.6; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; }
-        select, input, button { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #28a745; color: white; cursor: pointer; border: none; font-size: 16px; }
+        :root {
+            --primary-color: #333;
+            --accent-color: #8e8e8e;
+            --bg-color: #f9f9f9;
+        }
+        body { 
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; 
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            max-width: 500px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            line-height: 1.6; 
+        }
+        h2 { 
+            text-align: center; 
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        /* 訂位說明 */
+        .info-box {
+            background-color: #fff;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 30px;
+            color: #666;
+        }
+        .info-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        .form-group { margin-bottom: 20px; }
+        label { 
+            display: block; 
+            font-size: 14px;
+            font-weight: bold; 
+            margin-bottom: 8px;
+        }
+        select, input, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 5px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        button { 
+            background-color: var(--primary-color); 
+            color: white; 
+            cursor: pointer; 
+            border: none; 
+            font-weight: bold;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #555; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
-        .full { color: red; font-weight: bold; }
+        
+        #status-msg {
+            font-size: 12px;
+            margin-left: 10px;
+            color: #888;
+        }
+        .full { color: #d9534f; font-weight: bold; }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 40px;
+        }
     </style>
 </head>
 <body>
-    <h2>線上訂位系統</h2>
-    <p>2月開放日：2/14 (五), 2/15 (六)</p>
+    <h2>訂位，好像不錯。</h2>
+
+    <div class="info-box">
+        <span class="info-title">/ 訂位說明 /</span>
+        1. 填寫表單並不代表訂位成功。<br>
+        2. 請務必留下正確的 IG 帳號，我們將透過私訊與您聯繫。<br>
+        3. 收到確認訊息後，訂位才算正式成立。<br>
+        4. 座位有限，額滿為止。<br>
+        5. 當天以現場報到順序入場，依照人數選擇座位。<br>
+    </div>
 
     <div id="booking-form">
         <div class="form-group">
-            <label>選擇日期</label>
+            <label>日期</label>
             <select id="date" onchange="checkAvailability()">
-                <option value="2026-02-14">2026-02-14 (西洋情人節)</option>
-                <option value="2026-02-15">2026-02-15</option>
+                <option value="2026-02-19">2026-02-19 (週四)</option>
+                <option value="2026-02-28">2026-02-28 (週六)</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>選擇時段</label>
+            <label>時段 <span id="status-msg"></span></label>
             <select id="time" onchange="checkAvailability()">
                 <option value="17:30">17:30</option>
                 <option value="20:00">20:00</option>
                 <option value="22:30">22:30</option>
             </select>
-            <span id="status-msg"></span>
         </div>
 
         <div class="form-group">
             <label>人數</label>
             <select id="guests">
-                <option value="1">1位</option>
-                <option value="2">2位</option>
-                <option value="4">4位</option>
-                <option value="4">4位</option>
-                <option value="6">6位</option>
+                <option value="1">1 位</option>
+                <option value="2">2 位</option>
+                <option value="4">4 位</option>
+                <option value="6">6 位</option>
             </select>
         </div>
 
         <div class="form-group">
             <label>姓名</label>
-            <input type="text" id="name" placeholder="請輸入姓名" required>
+            <input type="text" id="name" placeholder="您的稱呼" required>
         </div>
 
-        <button id="submit-btn" onclick="submitBooking()">立即預約</button>
+        <div class="form-group">
+            <label>Instagram 帳號</label>
+            <input type="text" id="ig" placeholder="請輸入 IG 帳號以供聯繫" required>
+        </div>
+
+        <button id="submit-btn" onclick="submitBooking()">提交訂位申請</button>
     </div>
 
+    <div class="footer">© 2026 Sounds Nice. All rights reserved.</div>
+
     <script>
-        // !!! 請將下方網址替換成你部署 GAS 後得到的 Web App URL !!!
+        // 請務必確認這裡已換成你的 GAS 網址
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwbwPWvrw0l4KJHg1hRHdQUTrUp6ZAEmTRRZtcidX6kDdYt47-ILoTTTSeAuWZFq6FgxA/exec';
 
-        // 頁面載入後自動檢查一次名額
         window.onload = checkAvailability;
 
         async function checkAvailability() {
@@ -69,42 +153,45 @@
             const statusMsg = document.getElementById('status-msg');
             const btn = document.getElementById('submit-btn');
 
-            statusMsg.innerText = "讀取名額中...";
+            statusMsg.innerText = "(讀取中...)";
             btn.disabled = true;
 
             try {
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
                 
-                // 統計該時段已訂位人數
                 const booked = (data.bookedData[date] && data.bookedData[date][time]) ? data.bookedData[date][time] : 0;
                 const remaining = data.limit - booked;
 
                 if (remaining <= 0) {
-                    statusMsg.innerHTML = '<span class="full">已滿位</span>';
+                    statusMsg.innerHTML = '<span class="full"> / 已滿位</span>';
                     btn.disabled = true;
                 } else {
-                    statusMsg.innerText = `剩餘名額：${remaining}`;
+                    statusMsg.innerText = ` / 尚有名額`;
                     btn.disabled = false;
                 }
             } catch (e) {
-                statusMsg.innerText = "無法取得名額資訊";
+                statusMsg.innerText = "(連線失敗)";
             }
         }
 
         async function submitBooking() {
             const btn = document.getElementById('submit-btn');
+            const name = document.getElementById('name').value;
+            const ig = document.getElementById('ig').value;
+
+            if (!name || !ig) { alert("請填寫姓名與 IG 帳號以便後續聯繫"); return; }
+
             const payload = {
                 date: document.getElementById('date').value,
                 time: document.getElementById('time').value,
                 guests: document.getElementById('guests').value,
-                name: document.getElementById('name').value
+                name: name,
+                ig: ig
             };
 
-            if (!payload.name) { alert("請輸入姓名"); return; }
-
             btn.disabled = true;
-            btn.innerText = "預約傳送中...";
+            btn.innerText = "申請傳送中...";
 
             try {
                 const response = await fetch(GAS_URL, {
@@ -114,16 +201,16 @@
                 const result = await response.json();
 
                 if (result.result === 'success') {
-                    alert("預約成功！我們準時見。");
+                    alert("申請已送出！\n\n請注意您的 IG 私訊，我們回覆確認後訂位才算成立喔。");
                     location.reload(); 
                 } else {
                     alert("錯誤：" + result.message);
                     checkAvailability();
                 }
             } catch (e) {
-                alert("傳送失敗，請稍後再試");
+                alert("系統繁忙，請稍後再試");
             } finally {
-                btn.innerText = "立即預約";
+                btn.innerText = "提交訂位申請";
             }
         }
     </script>
