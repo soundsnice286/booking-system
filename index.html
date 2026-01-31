@@ -8,11 +8,11 @@
         :root { --primary: #333; --bg: #f9f9f9; --danger: #d9534f; }
         body { font-family: sans-serif; background: var(--bg); color: var(--primary); max-width: 450px; margin: 40px auto; padding: 20px; line-height: 1.6; }
         h2 { text-align: center; letter-spacing: 2px; }
-        .info-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 8px; font-size: 14px; margin-bottom: 25px; color: #666; }
+        .info-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 8px; font-size: 14px; margin-bottom: 25px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; }
         select, input, button { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; transition: 0.3s; }
+        button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         .status-tag { font-size: 12px; margin-left: 8px; }
         .full { color: var(--danger); font-weight: bold; }
@@ -25,9 +25,8 @@
 
     <div class="info-box">
         <b>/ 訂位說明 /</b><br>
-        1. 填寫表單後請留意 IG 私訊。<br>
-        2. 經回覆確認後訂位才成立。<br>
-        3. 若人數選項顯示「已滿」，代表該時段名額已達上限。
+        1. 填寫後請留意 IG 私訊，回覆後訂位才成立。<br>
+        2. 選項顯示「已滿」代表該人數類別已達上限。
     </div>
 
     <div class="form-group">
@@ -47,7 +46,7 @@
     </div>
 
     <div class="form-group">
-        <label>預約人數 <span id="seat-status" class="status-tag"></span></label>
+        <label>人數 <span id="seat-status" class="status-tag"></span></label>
         <select id="guests" onchange="validateChoice()">
             <option value="1">1 位</option>
             <option value="2">2 位</option>
@@ -60,26 +59,24 @@
 
     <div class="form-group">
         <label>姓名</label>
-        <input type="text" id="name" placeholder="您的稱呼">
+        <input type="text" id="name">
     </div>
 
     <div class="form-group">
         <label>Instagram 帳號</label>
-        <input type="text" id="ig" placeholder="請輸入帳號以便聯繫">
+        <input type="text" id="ig">
     </div>
 
     <button id="submit-btn" onclick="submitBooking()" disabled>讀取名額中...</button>
 
-    <div class="footer">© 2026 Sounds Nice.</div>
-
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwcFnJ0ffLObSaH_HZLyzrG56oQIpk7rz6GIC-HQolsmVrW0rBMwYstb9qON_OLHU6cIg/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwxWALWAYpPDbOBU93KrgAmXyp0lJ0oyclonRO50hjmey6f9r0DWvjSO2KuuUjKlITmMw/exec';
         let currentStats = null;
 
         window.onload = checkAvailability;
 
         async function checkAvailability() {
-            document.getElementById('seat-status').innerText = "(檢查中...)";
+            document.getElementById('seat-status').innerText = "(檢查名額中...)";
             try {
                 const res = await fetch(GAS_URL);
                 currentStats = await res.json();
@@ -101,20 +98,19 @@
             let isFull = false;
             let msg = "";
 
-            // 規則 1: 1-2位上限 5 組
+            // 規則 1：1-2位上限 5 組
             if ((guests === 1 || guests === 2) && booked.small >= currentStats.limits.small) { 
                 isFull = true; msg = "1-2位已額滿"; 
             } 
-            // 規則 2: 3位以上上限 3 組
-            else if (guests >= 3 && booked.large >= currentStats.limits.large && !(guests === 5 && booked.five < currentStats.limits.five && booked.large < currentStats.limits.large)) {
-                // 這邊邏輯比較細，如果大桌總數已滿 3，則 3 位以上全部不能訂
+            // 規則 2：大桌 (3位以上) 總組數上限 3 組
+            else if (guests >= 3 && booked.large >= currentStats.limits.large) {
                 isFull = true; msg = "此時段大桌已滿";
             }
-            // 規則 3: 5位上限 2 組
+            // 規則 3：5位獨立上限 2 組
             if (guests === 5 && booked.five >= currentStats.limits.five) {
                 isFull = true; msg = "5位預約已額滿";
             }
-            // 規則 4: 6位上限 1 組
+            // 規則 4：6位獨立上限 1 組
             if (guests === 6 && booked.six >= currentStats.limits.six) {
                 isFull = true; msg = "6位預約已額滿";
             }
@@ -122,9 +118,9 @@
             if (isFull) {
                 status.innerHTML = `<span class="full">● ${msg}</span>`;
                 btn.disabled = true;
-                btn.innerText = "該類別已滿位";
+                btn.innerText = "此類別人數已滿";
             } else {
-                status.innerHTML = `<span style="color:#28a745">● 尚有名額</span>`;
+                status.innerHTML = `<span style="color:green">● 尚有名額</span>`;
                 btn.disabled = false;
                 btn.innerText = "提交訂位申請";
             }
@@ -133,11 +129,9 @@
         async function submitBooking() {
             const name = document.getElementById('name').value;
             const ig = document.getElementById('ig').value;
-            if (!name || !ig) { alert("請填寫姓名與 IG"); return; }
-            
+            if (!name || !ig) { alert("請填寫完整資訊"); return; }
             const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerText = "傳送中...";
+            btn.disabled = true; btn.innerText = "傳送中...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -151,10 +145,7 @@
                     })
                 });
                 const result = await res.json();
-                if (result.result === 'success') {
-                    alert("申請成功！請留意 IG 私訊。");
-                    location.reload();
-                }
+                if (result.result === 'success') { alert("預約已送出！請等候 IG 私訊。"); location.reload(); }
             } catch (e) { alert("系統繁忙"); btn.disabled = false; }
         }
     </script>
