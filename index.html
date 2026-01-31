@@ -72,7 +72,7 @@
     <div class="footer">© 2026 Sounds Nice.</div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyW6knOeuka4nC-LXzSolRhQZQm6OcV-1Nc6HxZzsyPcF_QoIOlFUp70i9MtyhNR6_W3g/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPZdoyL2HER8PWvx4wZMXLtOUjBYHzYu4CcE5J7MUjx9cwet9Ye2lPhQqb228j1_qbcg/exec';
         let currentStats = null;
 
         window.onload = checkAvailability;
@@ -95,28 +95,34 @@
             const status = document.getElementById('seat-status');
 
             const dayData = currentStats.bookedData[date] || {};
-            const booked = dayData[time] || { small: 0, large: 0, five: 0, six: 0 };
+            const booked = dayData[time] || { single: 0, small: 0, large: 0, five: 0, six: 0 };
 
             let isFull = false;
             let msg = "";
 
             // --- 判斷邏輯開始 ---
-            
-            // 優先處理 1-2 位
+
+            // 1. 處理 1-2 位 (Small)
             if (guests === 1 || guests === 2) {
+                // 先看 1-2 位總量是否滿 5
                 if (booked.small >= currentStats.limits.small) {
                     isFull = true;
-                    msg = "1-2位預約已額滿";
+                    msg = "此時段小桌已滿";
+                } 
+                // 若總量沒滿，但選的是 1 位且 1 位已滿 3 組
+                else if (guests === 1 && booked.single >= currentStats.limits.single) {
+                    isFull = true;
+                    msg = "1位預約已額滿";
                 }
             } 
-            // 處理 3 位以上 (大桌)
+            // 2. 處理 3 位以上 (Large)
             else if (guests >= 3) {
-                // 第一層判定：大桌總量 (3組) 是否已滿
+                // 優先判定大桌總量 (3組) 是否已滿
                 if (booked.large >= currentStats.limits.large) {
                     isFull = true;
                     msg = "此時段大桌已滿";
                 } 
-                // 第二層判定：大桌總量未滿，但特定人數 (5位或6位) 已達個別上限
+                // 大桌未滿，判定特定人數上限
                 else {
                     if (guests === 5 && booked.five >= currentStats.limits.five) {
                         isFull = true;
