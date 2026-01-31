@@ -103,7 +103,7 @@
             if ((guests === 1 || guests === 2) && booked.small >= currentStats.limits.small) { isFull = true; msg = "1-2位已滿"; }
             else if (guests >= 3 && guests < 6 && booked.large >= currentStats.limits.large) { isFull = true; msg = "3-5位已滿"; }
             else if (guests === 6) {
-                if (booked.six >= currentStats.limits.six) { isFull = true; msg = "6位已有一組預約"; }
+                if (booked.six >= currentStats.limits.six) { isFull = true; msg = "6位預約已額滿"; }
                 else if (booked.large >= currentStats.limits.large) { isFull = true; msg = "大桌時段已滿"; }
             }
 
