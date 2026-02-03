@@ -9,8 +9,7 @@
         body { font-family: sans-serif; background: var(--bg); color: var(--primary); max-width: 450px; margin: 20px auto; padding: 20px; line-height: 1.6; }
         h2 { text-align: center; letter-spacing: 2px; margin-bottom: 30px; }
         
-        #full-alert { display: none; background: #fff1f0; border: 1px solid #ffa39e; color: var(--danger); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; }
-        
+        /* 移除原本上方的 alert 樣式 */
         .info-box { background: #fff; border: 1px solid #eee; padding: 20px; border-radius: 8px; font-size: 14px; margin-bottom: 25px; text-align: left; }
         .info-box h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .info-box ul { list-style: none; padding-left: 0; margin: 0; }
@@ -31,10 +30,10 @@
         button:disabled { background: #ccc; cursor: not-allowed; }
         
         .success-action-area { text-align: center; margin-top: 25px; }
-        .ig-btn { background: var(--coffee); color: #fff; text-decoration: none; display: inline-block; width: 80%; padding: 12px 20px; border-radius: 6px; font-weight: bold; margin-bottom: 12px; transition: 0.3s; text-align: left; box-sizing: border-box; }
-        .home-btn { background: var(--primary); color: #fff; width: 80%; display: inline-block; border-radius: 6px; padding: 12px; text-decoration: none; font-size: 16px; }
+        .ig-btn { background: var(--coffee); color: #fff; text-decoration: none; display: inline-block; width: 80%; padding: 12px 20px; border-radius: 6px; font-weight: bold; margin-bottom: 12px; text-align: left; box-sizing: border-box; }
+        .home-btn { background: var(--primary); color: #fff; width: 80%; display: inline-block; border-radius: 6px; padding: 12px; text-decoration: none; font-size: 16px; font-weight: bold; }
 
-        .status-tag { font-size: 12px; margin-left: 8px; }
+        .status-tag { font-size: 12px; margin-left: 8px; font-weight: normal; }
         .full { color: var(--danger); }
         .footer { text-align: center; font-size: 12px; color: #aaa; margin-top: 40px; }
 
@@ -47,7 +46,6 @@
 
     <div id="booking-form">
         <h2>訂位，好像不錯。</h2>
-        <div id="full-alert">⚠️ 很抱歉，此時段已全數滿位</div>
 
         <div class="info-box">
             <h3>📅 預約須知</h3>
@@ -76,7 +74,7 @@
         </div>
 
         <div class="form-group">
-            <label>時段</label>
+            <label>時段 <span id="time-status" class="status-tag"></span></label>
             <select id="time" onchange="checkAvailability()">
                 <option value="17:30~20:30">17:30~20:30</option>
                 <option value="21:30~12:30">21:30~12:30</option>
@@ -112,7 +110,8 @@
 
         <div class="submit-notice">
             請再次確認 IG 帳號填寫正確，<br>
-            <br>收到私訊後，<br>須在 <strong>24 小時內回覆</strong>，訂位才正式成立
+            收到私訊後，<br>
+            須在 <strong>24 小時內回覆</strong>，訂位才正式成立。
         </div>
 
         <button id="submit-btn" onclick="submitBooking()" disabled>請先完成填寫</button>
@@ -120,7 +119,8 @@
 
     <div id="success-view">
         <div class="success-msg">資料送出成功。</div>
-        <p>請留意 IG 訊息，收到私訊後，<br>須在 <strong>24 小時內回覆</strong>，訂位才正式成立</p>
+        <p>收到私訊後，<br>
+            須在 <strong>24 小時內回覆</strong>，訂位才正式成立。</p>
         <p style="margin-top:20px; color:#666;">
             如需取消候位可以私訊IG通知我們，<br>非常感謝您。
         </p>
@@ -135,19 +135,18 @@
     <div class="footer">© 2026 Sounds Nice.</div>
 
     <script>
-        // 已更新為您提供的最新 GAS 網址
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwLP6yftFfb3XNQQsiNIcM_ziaOKbGfp7LUxN89EL0-WyB0JeexPie0bDKGMKJM0ZcpRw/exec'; 
         let currentStats = null;
 
         window.onload = checkAvailability;
 
         async function checkAvailability() {
-            document.getElementById('seat-status').innerText = "(名額確認中...)";
+            document.getElementById('time-status').innerText = "(名額確認中...)";
             try {
                 const res = await fetch(GAS_URL);
                 currentStats = await res.json();
                 validateForm();
-            } catch (e) { document.getElementById('seat-status').innerText = "(連線失敗)"; }
+            } catch (e) { document.getElementById('time-status').innerText = "(連線失敗)"; }
         }
 
         function validateForm() {
@@ -159,8 +158,9 @@
             const date = document.getElementById('date').value;
             const time = document.getElementById('time').value;
             const btn = document.getElementById('submit-btn');
-            const status = document.getElementById('seat-status');
-            const fullAlert = document.getElementById('full-alert');
+            
+            const timeStatus = document.getElementById('time-status');
+            const seatStatus = document.getElementById('seat-status');
 
             const dayData = currentStats.bookedData[date] || {};
             const booked = dayData[time] || { single: 0, small: 0, large: 0, fiveSix: 0 };
@@ -171,8 +171,12 @@
             const isSmallFull = booked.small >= currentStats.limits.small;
             const isLargeFull = booked.large >= currentStats.limits.large;
             
-            // 全滿判定
-            fullAlert.style.display = (isSmallFull && isLargeFull) ? "block" : "none";
+            // 時段全滿判定顯示
+            if (isSmallFull && isLargeFull) {
+                timeStatus.innerHTML = `<span class="full">● 此時段已全數額滿</span>`;
+            } else {
+                timeStatus.innerHTML = "";
+            }
 
             // 人數邏輯判斷
             if (guests === 1 || guests === 2) {
@@ -180,16 +184,15 @@
                 else if (guests === 1 && booked.single >= currentStats.limits.single) { isFull = true; msg = "1位預約已額滿"; }
             } else if (guests >= 3) {
                 if (isLargeFull) { isFull = true; msg = "此時段大桌已滿"; }
-                // 5位以上合併上限為 2 組
                 else if (guests >= 5 && booked.fiveSix >= currentStats.limits.fiveSix) { isFull = true; msg = "5位以上預約已額滿"; }
             }
 
             if (isFull) {
-                status.innerHTML = `<span class="full">● ${msg}</span>`;
+                seatStatus.innerHTML = `<span class="full">● ${msg}</span>`;
                 btn.disabled = true;
                 btn.innerText = "該類別已滿位";
             } else {
-                status.innerHTML = `<span style="color:var(--success)">● 尚有名額</span>`;
+                seatStatus.innerHTML = `<span style="color:var(--success)">● 尚有名額</span>`;
                 if (name && ig && agree) {
                     btn.disabled = false;
                     btn.innerText = "提交訂位申請";
