@@ -5,18 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂位，好像不錯。</title>
     <style>
-        :root { --primary: #333; --bg: #f9f9f9; --danger: #d9534f; --success: #28a745; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--primary); max-width: 450px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+        :root { --primary: #333; --bg: #f9f9f9; --danger: #d9534f; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--primary); max-width: 450px; margin: 40px auto; padding: 20px; }
         h2 { text-align: center; letter-spacing: 2px; }
-        
-        /* 全滿提示框樣式 */
-        #full-alert { display: none; background: #fff1f0; border: 1px solid #ffa39e; color: var(--danger); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 15px; }
-        
         .info-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 8px; font-size: 14px; margin-bottom: 25px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; }
         select, input, button { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; transition: 0.3s; }
+        button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         .status-tag { font-size: 12px; margin-left: 8px; }
         .full { color: var(--danger); font-weight: bold; }
@@ -27,12 +23,10 @@
 
     <h2>訂位，好像不錯。</h2>
 
-    <div id="full-alert">⚠️ 很抱歉，此時段已全數滿位</div>
-
     <div class="info-box">
         <b>/ 訂位說明 /</b><br>
         1. 填寫後請留意 IG 私訊，回覆後訂位才成立。<br>
-        2. 若選項顯示「已滿」，代表該人數類別已達上限。
+        2. 選項顯示「已滿」代表該人數類別已達上限。
     </div>
 
     <div class="form-group">
@@ -78,7 +72,7 @@
     <div class="footer">© 2026 Sounds Nice.</div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPZdoyL2HER8PWvx4wZMXLtOUjBYHzYu4CcE5J7MUjx9cwet9Ye2lPhQqb228j1_qbcg/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxHIHeViNpEHBfYnd2G8W7on6ZBAytXHq4vdH6W636gux-MuMeNZw1clp87DgQD7yzczA/exec';
         let currentStats = null;
 
         window.onload = checkAvailability;
@@ -99,7 +93,6 @@
             const guests = parseInt(document.getElementById('guests').value);
             const btn = document.getElementById('submit-btn');
             const status = document.getElementById('seat-status');
-            const fullAlert = document.getElementById('full-alert');
 
             const dayData = currentStats.bookedData[date] || {};
             const booked = dayData[time] || { single: 0, small: 0, large: 0, five: 0, six: 0 };
@@ -107,34 +100,30 @@
             let isFull = false;
             let msg = "";
 
-            // --- 全時段滿位判定 ---
-            const isSmallFull = booked.small >= currentStats.limits.small;
-            const isLargeFull = booked.large >= currentStats.limits.large;
+            // --- 判斷邏輯開始 ---
 
-            if (isSmallFull && isLargeFull) {
-                fullAlert.style.display = "block";
-            } else {
-                fullAlert.style.display = "none";
-            }
-
-            // --- 個別選項判定 ---
-            
-            // 1. 處理 1-2 位
+            // 1. 處理 1-2 位 (Small)
             if (guests === 1 || guests === 2) {
-                if (isSmallFull) {
+                // 先看 1-2 位總量是否滿 5
+                if (booked.small >= currentStats.limits.small) {
                     isFull = true;
                     msg = "此時段小桌已滿";
-                } else if (guests === 1 && booked.single >= currentStats.limits.single) {
+                } 
+                // 若總量沒滿，但選的是 1 位且 1 位已滿 3 組
+                else if (guests === 1 && booked.single >= currentStats.limits.single) {
                     isFull = true;
                     msg = "1位預約已額滿";
                 }
             } 
-            // 2. 處理 3 位以上
+            // 2. 處理 3 位以上 (Large)
             else if (guests >= 3) {
-                if (isLargeFull) {
+                // 優先判定大桌總量 (3組) 是否已滿
+                if (booked.large >= currentStats.limits.large) {
                     isFull = true;
                     msg = "此時段大桌已滿";
-                } else {
+                } 
+                // 大桌未滿，判定特定人數上限
+                else {
                     if (guests === 5 && booked.five >= currentStats.limits.five) {
                         isFull = true;
                         msg = "5位預約已額滿";
@@ -149,9 +138,9 @@
             if (isFull) {
                 status.innerHTML = `<span class="full">● ${msg}</span>`;
                 btn.disabled = true;
-                btn.innerText = "該時段人數已滿";
+                btn.innerText = "該類別已滿位";
             } else {
-                status.innerHTML = `<span style="color:var(--success)">● 尚有名額</span>`;
+                status.innerHTML = `<span style="color:green">● 尚有名額</span>`;
                 btn.disabled = false;
                 btn.innerText = "提交訂位申請";
             }
@@ -175,7 +164,7 @@
                     })
                 });
                 const result = await res.json();
-                if (result.result === 'success') { alert("預約已送出！請等候確認。"); location.reload(); }
+                if (result.result === 'success') { alert("預約已成功送出！"); location.reload(); }
             } catch (e) { alert("系統繁忙"); btn.disabled = false; }
         }
     </script>
