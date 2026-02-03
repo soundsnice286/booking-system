@@ -7,16 +7,14 @@
     <style>
         :root { --primary: #333; --bg: #f9f9f9; --danger: #d9534f; --success: #28a745; --notice-bg: #8b0000; --coffee: #4e342e; }
         body { font-family: sans-serif; background: var(--bg); color: var(--primary); max-width: 450px; margin: 20px auto; padding: 20px; line-height: 1.6; }
-        h2 { text-align: center; letter-spacing: 2px; }
+        h2 { text-align: center; letter-spacing: 2px; margin-bottom: 30px; }
         
         #full-alert { display: none; background: #fff1f0; border: 1px solid #ffa39e; color: var(--danger); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         
         .info-box { background: #fff; border: 1px solid #eee; padding: 20px; border-radius: 8px; font-size: 14px; margin-bottom: 25px; text-align: left; }
         .info-box h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .info-box ul { list-style: none; padding-left: 0; margin: 0; }
-        .info-box li { margin-bottom: 10px; line-height: 1.6; display: flex; }
-        
-        /* 讓標題與內容分開，達成對齊效果 */
+        .info-box li { margin-bottom: 10px; display: flex; align-items: flex-start; }
         .info-box li .title { font-weight: bold; white-space: nowrap; flex-shrink: 0; }
         .info-box li .content { flex-grow: 1; }
         
@@ -25,17 +23,16 @@
         select, input, button { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         
         .checkbox-group { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; margin-bottom: 25px; font-weight: bold; cursor: pointer; text-align: left; }
-        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
 
-        .submit-notice { background: var(--notice-bg); color: #fff; padding: 15px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; text-align: left; line-height: 1.5; }
+        .submit-notice { background: var(--notice-bg); color: #fff; padding: 15px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; text-align: left; line-height: 1.6; }
         
         button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         
         .success-action-area { text-align: center; margin-top: 25px; }
         .ig-btn { background: var(--coffee); color: #fff; text-decoration: none; display: inline-block; width: 80%; padding: 12px 20px; border-radius: 6px; font-weight: bold; margin-bottom: 12px; transition: 0.3s; text-align: left; box-sizing: border-box; }
-        .ig-btn:hover { opacity: 0.9; }
-        .home-btn { background: var(--primary); color: #fff; width: 80%; display: inline-block; border-radius: 6px; }
+        .home-btn { background: var(--primary); color: #fff; width: 80%; display: inline-block; border-radius: 6px; padding: 12px; text-decoration: none; font-size: 16px; }
 
         .status-tag { font-size: 12px; margin-left: 8px; }
         .full { color: var(--danger); }
@@ -55,23 +52,17 @@
         <div class="info-box">
             <h3>📅 預約須知</h3>
             <ul>
-                <li>
-                    <span class="title">訂位成立：</span>
-                    <span class="content">
-                        <strong>請確保 IG 帳號填寫正確</strong>。<br>
-                        收到私訊後，須在 <strong>24 小時內回覆</strong>，訂位才正式成立。
-                    </span>
-                </li>
+                <li><span class="title">訂位成立：</span><span class="content"><strong>請確保 IG 帳號填寫正確</strong>。<br>收到私訊後，須在 <strong>24 小時內回覆</strong>，訂位才正式成立。</span></li>
                 <li><span class="title">座位保留：</span><span class="content">座位僅保留 <strong>10 分鐘</strong>，逾時視同取消，不另行通知。</span></li>
-                <li><span class="title">用餐限時：</span><span class="content">僅限預約時段內，無法延長加時。</span></li>
+                <li><span class="title">用餐時間：</span><span class="content">僅限預約時段內，無法延長加時。</span></li>
                 <li><span class="title">人數規範：</span><span class="content">每組<strong>最多 6 位</strong>，恕不接待 <strong>8 歲以下</strong>兒童。</span></li>
-                <li><span class="title">座位安排：</span><span class="content">依訂位順序與人數入場選擇座位。</span></li>
+                <li><span class="title">座位安排：</span><span class="content">依訂位順序與人數安排座位，<strong>無法指定</strong>。</span></li>
                 <li><span class="title">最低消費：</span><span class="content">每人 <strong>NT.160元</strong>（依訂位人數計算）。</span></li>
             </ul>
             <h3 style="margin-top:20px;">🍽️ 用餐須知</h3>
             <ul>
-                <li><span class="title">寧靜環境：</span><span class="content">請降低說話音量並放輕腳步。</span></li>
-                <li><span class="title">禁止外食：</span><span class="content">禁帶外食與飲料，無提供保管或垃圾丟棄服務。</span></li>
+                <li><span class="title">寧靜環境：</span><span class="content">本店空間寧靜，請降低說話音量並放輕腳步。</span></li>
+                <li><span class="title">禁止外食：</span><span class="content">禁帶外食與飲料，無提供代管或垃圾丟棄服務。</span></li>
                 <li><span class="title">僅供內用：</span><span class="content">全店無外帶服務。</span></li>
             </ul>
         </div>
@@ -120,9 +111,8 @@
         </label>
 
         <div class="submit-notice">
-            請再次確認 IG 帳號填寫正確。<br>
-            收到私訊後，<br>
-            須在 <strong>24 小時內回覆</strong>，訂位才正式成立。
+            請填寫正確 IG 帳號，<br>
+            送出後靜待我們的確認訊息，收到訊息訂位才正式成立。
         </div>
 
         <button id="submit-btn" onclick="submitBooking()" disabled>請先完成填寫</button>
@@ -130,8 +120,7 @@
 
     <div id="success-view">
         <div class="success-msg">資料送出成功。</div>
-        <p>請留意 IG 訊息，收到私訊後，<br>
-        須在 <strong>24 小時內回覆</strong>，訂位才正式成立。</p>
+        <p>請留意 IG 訊息，收到訊息訂位才正式成立。</p>
         <p style="margin-top:20px; color:#666;">
             如需取消候位可以私訊IG通知我們，<br>非常感謝您。
         </p>
@@ -146,7 +135,8 @@
     <div class="footer">© 2026 Sounds Nice.</div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzc0nvn5KUQG3_Jg5lkCn6b_Hu0f8xQCZU7swPyA-NF6vaT6yiGolckRPyodqkwPpgqpw/exec'; 
+        // 已更新為您提供的最新 GAS 網址
+        const GAS_URL = 'hhttps://script.google.com/macros/s/AKfycbwLP6yftFfb3XNQQsiNIcM_ziaOKbGfp7LUxN89EL0-WyB0JeexPie0bDKGMKJM0ZcpRw/exec'; 
         let currentStats = null;
 
         window.onload = checkAvailability;
@@ -173,24 +163,25 @@
             const fullAlert = document.getElementById('full-alert');
 
             const dayData = currentStats.bookedData[date] || {};
-            const booked = dayData[time] || { single: 0, small: 0, large: 0, five: 0, six: 0 };
+            const booked = dayData[time] || { single: 0, small: 0, large: 0, fiveSix: 0 };
 
             let isFull = false;
             let msg = "";
 
             const isSmallFull = booked.small >= currentStats.limits.small;
             const isLargeFull = booked.large >= currentStats.limits.large;
+            
+            // 全滿判定
             fullAlert.style.display = (isSmallFull && isLargeFull) ? "block" : "none";
 
+            // 人數邏輯判斷
             if (guests === 1 || guests === 2) {
                 if (isSmallFull) { isFull = true; msg = "此時段小桌已滿"; }
                 else if (guests === 1 && booked.single >= currentStats.limits.single) { isFull = true; msg = "1位預約已額滿"; }
             } else if (guests >= 3) {
                 if (isLargeFull) { isFull = true; msg = "此時段大桌已滿"; }
-                else {
-                    if (guests === 5 && booked.five >= currentStats.limits.five) { isFull = true; msg = "5位預約已額滿"; }
-                    else if (guests === 6 && booked.six >= currentStats.limits.six) { isFull = true; msg = "6位預約已額滿"; }
-                }
+                // 5位以上合併上限為 2 組
+                else if (guests >= 5 && booked.fiveSix >= currentStats.limits.fiveSix) { isFull = true; msg = "5位以上預約已額滿"; }
             }
 
             if (isFull) {
@@ -229,7 +220,7 @@
                     document.getElementById('success-view').style.display = 'block';
                     window.scrollTo(0, 0);
                 }
-            } catch (e) { alert("系統繁忙"); btn.disabled = false; }
+            } catch (e) { alert("系統繁忙，請稍後再試"); btn.disabled = false; btn.innerText = "提交訂位申請"; }
         }
     </script>
 </body>
