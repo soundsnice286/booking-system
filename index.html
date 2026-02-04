@@ -73,13 +73,13 @@
             </select>
         </div>
 
-        <div class="form-group">
-            <label>時段 <span id="time-status" class="status-tag"></span></label>
-            <select id="time" onchange="checkAvailability()">
-                <option value="17:30~20:30">17:30~20:30</option>
-                <option value="21:30~12:30">21:30~12:30</option>
-            </select>
-        </div>
+    <div class="form-group">
+    <label>時段 <span id="time-status" class="status-tag"></span></label>
+    <select id="time" onchange="checkAvailability()">
+        <option value="17:30~20:30">17:30~20:30</option>
+        <option value="21:30~00:30">21:30~00:30</option>
+    </select>
+</div>
 
         <div class="form-group">
             <label>預約人數 <span id="seat-status" class="status-tag"></span></label>
@@ -135,7 +135,7 @@
     <div class="footer">© 2026 Sounds Nice.</div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxfJeFZRYda9W8ja_UUu79Dt2imyFItyYpG8HId8qul_blBy1fWHgyFwD_WZEgIxSmp4g/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyfAOA7Qj0JEudAIKsGy1YQszh-IVcvCbUwCrND0v6pyynApaxYbNwqWQkxA_-Myt44hg/exec'; 
         let currentStats = null;
 
         window.onload = checkAvailability;
