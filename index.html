@@ -11,7 +11,6 @@
         ul { padding-left: 20px; font-size: 0.95rem; }
         .form-group { margin-bottom: 15px; position: relative; }
         label { display: inline-block; font-weight: bold; margin-bottom: 5px; }
-        /* 紅圈處的紅色小字樣式 */
         .full-hint { color: #d93025; font-size: 0.85rem; font-weight: normal; margin-left: 10px; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .checkbox-container { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; font-size: 0.9rem; }
@@ -110,7 +109,7 @@
         try {
             const res = await fetch(GAS_URL);
             if(res.ok) apiData = await res.json();
-        } catch (e) { console.log("使用預設名額"); }
+        } catch (e) { console.log("使用預設配置"); }
         updateOptions();
     };
 
@@ -147,7 +146,9 @@
             else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) { isFull = true; type = "大桌"; } }
 
             let label = i + " 位" + (i===1?" (吧檯座位)":"");
-            let option = new Option(isFull ? label + " (候補)" : label, i);
+            // 依要求修改後綴文字
+            let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
+            let option = new Option(optionText, i);
             if(isFull) option.dataset.type = type;
             guestsSel.add(option);
         }
@@ -160,7 +161,7 @@
         const selected = document.getElementById('guests').selectedOptions[0];
         
         if (selected && selected.dataset.type) {
-            info.innerText = `(${selected.dataset.type}額滿)`;
+            info.innerText = `• 該${selected.dataset.type}額滿，可候補`;
             btn.innerText = "我要候補";
         } else {
             info.innerText = "";
