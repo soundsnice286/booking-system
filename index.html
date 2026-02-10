@@ -1,83 +1,141 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>預約訂位系統</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #f8f9fa; }
-        .booking-card { max-width: 500px; margin: 2rem auto; }
-        #responseMessage { white-space: pre-wrap; }
-    </style>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>訂位系統</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; line-height: 1.6; }
+    .loading { color: #888; font-style: italic; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #000; color: #fff; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    button:disabled { background-color: #ccc; }
+    .status-msg { margin-top: 20px; padding: 10px; border-radius: 4px; display: none; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  </style>
 </head>
-<body class="p-4">
-    <div class="booking-card bg-white p-6 rounded-xl shadow-lg">
-        <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">預約訂位</h1>
-        
-        <form id="bookingForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">姓名</label>
-                <input type="text" name="name" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">電話</label>
-                <input type="tel" name="phone" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">訂位日期</label>
-                <select name="date" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                    <option value="02-19">2月19日</option>
-                    <option value="02-20">2月20日</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">訂位類別</label>
-                <div class="flex gap-4 mt-2">
-                    <label><input type="radio" name="type" value="D" checked> 午場 (D)</label>
-                    <label><input type="radio" name="type" value="N"> 晚場 (N)</label>
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">人數</label>
-                <input type="number" name="guests" value="1" min="1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">備註</label>
-                <textarea name="note" class="mt-1 block w-full border border-gray-300 rounded-md p-2"></textarea>
-            </div>
-            <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700">
-                立即預約
-            </button>
-        </form>
+<body>
 
-        <div id="responseMessage" class="hidden mt-6 p-4 bg-gray-50 border rounded-lg text-sm text-gray-800"></div>
+  <h2>預約訂位</h2>
+  
+  <div id="bookingForm">
+    <div class="form-group">
+      <label>訂位日期</label>
+      <input type="date" id="date" required min="2026-02-10">
     </div>
 
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyaI6e4araDaS02vgakwsx241WMZNsdEZdonDs3RfJrjBSoxXMwK0R4GPcoarp6tzOB/exec';
-        const form = document.getElementById('bookingForm');
-        const responseMessage = document.getElementById('responseMessage');
+    <div class="form-group">
+      <label>時段</label>
+      <select id="time" required>
+        <option value="">請選擇日期...</option>
+      </select>
+      <div id="availability" class="loading">正在載入名額...</div>
+    </div>
 
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerText = '處理中...';
-            
-            fetch(scriptURL, { method: 'POST', body: new FormData(form) })
-            .then(res => res.json())
-            .then(data => {
-                if (data.result === 'success') {
-                    responseMessage.innerText = data.message;
-                    responseMessage.classList.remove('hidden');
-                    form.reset();
-                }
-            })
-            .finally(() => {
-                document.getElementById('submitBtn').disabled = false;
-                document.getElementById('submitBtn').innerText = '立即預約';
-            });
+    <div class="form-group">
+      <label>人數</label>
+      <input type="number" id="guests" min="1" max="10" value="2" required>
+    </div>
+
+    <div class="form-group">
+      <label>姓名</label>
+      <input type="text" id="name" placeholder="請輸入姓名" required>
+    </div>
+
+    <div class="form-group">
+      <label>Instagram 帳號</label>
+      <input type="text" id="ig" placeholder="例如: abc_123" required>
+    </div>
+
+    <button id="submitBtn">送出預約</button>
+  </div>
+
+  <div id="status" class="status-msg"></div>
+
+  <script>
+    // 這裡換成你最新的 GAS 部署網址 (WebApp URL)
+    const API_URL = "https://script.google.com/macros/s/AKfycbxpzSDTtF4rgiaZpzFvdN6XsmvcDMCmAInXUr3FEv2TRt6Ib8XZz0RvoE8qFLym4MZHEA/exec";
+    
+    let bookedData = {};
+
+    // 1. 初始化讀取名額
+    async function fetchAvailability() {
+      try {
+        const response = await fetch(API_URL);
+        const json = await response.json();
+        bookedData = json.bookedData || {};
+        document.getElementById('availability').innerText = "名額載入完成";
+        updateOptions();
+      } catch (e) {
+        document.getElementById('availability').innerText = "載入失敗，請重新整理";
+      }
+    }
+
+    // 2. 根據日期更新時段顯示
+    function updateOptions() {
+      const dateVal = document.getElementById('date').value;
+      const timeSelect = document.getElementById('time');
+      timeSelect.innerHTML = '<option value="">請選擇時段</option>';
+      
+      if (!dateVal) return;
+
+      const sessions = ["17:30 - 21:00", "21:30 - 01:00"];
+      sessions.forEach(s => {
+        const booked = (bookedData[dateVal] && bookedData[dateVal][s]) ? 
+                       (bookedData[dateVal][s].small + bookedData[dateVal][s].large) : 0;
+        const option = document.createElement('option');
+        option.value = s;
+        option.innerText = `${s} (目前已預約 ${booked} 組)`;
+        timeSelect.appendChild(option);
+      });
+    }
+
+    document.getElementById('date').addEventListener('change', updateOptions);
+
+    // 3. 送出表單
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      const data = {
+        date: document.getElementById('date').value,
+        time: document.getElementById('time').value,
+        guests: document.getElementById('guests').value,
+        name: document.getElementById('name').value,
+        ig: document.getElementById('ig').value
+      };
+
+      if (!data.date || !data.time || !data.name || !data.ig) {
+        alert("請完整填寫資料");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "傳送中...";
+      status.style.display = "none";
+
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(data)
         });
-    </script>
+        status.innerText = "預約成功！我們將會私訊您的 Instagram 確認訂位。";
+        status.className = "status-msg success";
+        status.style.display = "block";
+        document.getElementById('bookingForm').style.display = "none";
+      } catch (e) {
+        status.innerText = "連線失敗，請稍後再試。";
+        status.className = "status-msg error";
+        status.style.display = "block";
+        btn.disabled = false;
+        btn.innerText = "送出預約";
+      }
+    });
+
+    fetchAvailability();
+  </script>
 </body>
 </html>
