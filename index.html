@@ -48,20 +48,20 @@
 
     <div class="form-group">
         <label>日期</label>
-        <select id="date" onchange="updateGuestOptions()"></select>
-    </div>
-
-    <div class="form-group">
-        <label>時段</label>
-        <select id="time" onchange="updateGuestOptions()">
-            <option value="17:30~20:30">17:30~20:30</option>
-            <option value="21:30~00:30">21:30~00:30</option>
+        <select id="date" onchange="updateOptions()">
+            <option value="2026-02-19">2026-02-19 (週四)</option>
+            <option value="2026-02-28">2026-02-28 (週六)</option>
         </select>
     </div>
 
     <div class="form-group">
+        <label>時段</label>
+        <select id="time" onchange="updateGuestOptions()"></select>
+    </div>
+
+    <div class="form-group">
         <label>預約人數</label>
-        <select id="guests"></select>
+        <select id="guests" onchange="updateButtonText()"></select>
     </div>
 
     <div class="form-group">
@@ -87,9 +87,9 @@
     <div id="res-success">
         <p>收到私訊後，<br>須在 <b>24 小時內回覆</b>，訂位才正式成立。</p>
     </div>
-    <div id="res-waitlist" style="display:none;">
-        <p>有釋出位置會盡快透過訊息通知，<br>沒有座位的話就不會另行通知。</p>
-        <p style="font-size: 0.8rem; color: #888; margin-top:20px;">如需取消候位可以私訊 IG 通知我們，非常感謝您。</p>
+    <div id="res-waitlist" style="display:none; text-align: center;">
+        <p>您好，如有釋出位置會盡快透過訊息通知，<br>若沒有座位的話就不會另行通知。</p>
+        <p style="font-size: 0.85rem; color: #888; margin-top:20px;">如需取消候補可以私訊 IG 通知我們，非常感謝您。</p>
     </div>
     <button onclick="location.reload()" style="background:#666; margin-top:20px;">返回首頁</button>
 </div>
@@ -100,45 +100,76 @@
 </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbz1f9Znc1hgE_dugKRkiGsPu2dyLFjTyzX2Wd8MxvDVmqUtK0hASF8I4l5AMiodAuj5aw/exec';
+    const GAS_URL = '您的GAS連結';
     let apiData = null;
 
-    // 初始化：先去抓目前的訂位統計
     window.onload = async () => {
-        // 設定預設日期 (依您原本需求)
-        const dateSel = document.getElementById('date');
-        ["2026-02-19", "2026-02-28"].forEach(d => {
-            let opt = new Option(d + (d==='2026-02-19'?' (週四)':' (週六)'), d);
-            dateSel.add(opt);
-        });
-
         try {
             const res = await fetch(GAS_URL);
             apiData = await res.json();
-            updateGuestOptions();
-        } catch (e) { console.error("無法取得名額資訊"); }
+            updateOptions();
+        } catch (e) { console.error("無法取得名額"); }
     };
 
-    // 核心邏輯：即時判斷並顯示「(候補)」
+    function updateOptions() {
+        const dateVal = document.getElementById('date').value;
+        const timeSelect = document.getElementById('time');
+        timeSelect.innerHTML = '';
+        const sessions = ["17:30~20:30", "21:30~00:30"];
+        const lim = { small: 5, large: 3 }; // 基礎大類限制
+        
+        sessions.forEach(s => {
+            const booked = (apiData && apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
+                          apiData.bookedData[dateVal][s] : { small: 0, large: 0 };
+            
+            const isFullyBooked = (booked.small >= lim.small && booked.large >= lim.large);
+            const option = document.createElement('option');
+            option.value = s;
+            option.innerText = isFullyBooked ? `${s} (額滿，可候補)` : s;
+            timeSelect.appendChild(option);
+        });
+        updateGuestOptions();
+    }
+
     function updateGuestOptions() {
-        if(!apiData) return;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const guestsSel = document.getElementById('guests');
-        const booked = (apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
-        const lim = apiData.limits;
+        const booked = (apiData && apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
+        const lim = { single: 2, small: 5, large: 3, fiveSix: 2 };
 
         guestsSel.innerHTML = "";
         for(let i=1; i<=6; i++) {
             let isFull = false;
-            if(i === 1) { if(booked.single >= lim.single || booked.small >= lim.small) isFull = true; }
-            else if(i === 2) { if(booked.small >= lim.small) isFull = true; }
-            else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) isFull = true; }
-            else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; }
+            let type = ""; // 紀錄是哪種類型額滿
+            if(i === 1) { 
+                if(booked.single >= lim.single || booked.small >= lim.small) { isFull = true; type = "吧檯位"; }
+            } else if(i === 2) { 
+                if(booked.small >= lim.small) { isFull = true; type = "小桌"; }
+            } else if(i >= 3 && i <= 4) { 
+                if(booked.large >= lim.large) { isFull = true; type = "大桌"; }
+            } else if(i >= 5) { 
+                if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) { isFull = true; type = "大桌"; }
+            }
 
             let label = i + " 位" + (i===1?" (吧檯座位)":"");
-            if(isFull) label += " (候補)";
-            guestsSel.add(new Option(label, i));
+            let option = new Option(isFull ? label + " (候補)" : label, i);
+            if(isFull) option.dataset.waitlistType = type; 
+            guestsSel.add(option);
+        }
+        updateButtonText();
+    }
+
+    function updateButtonText() {
+        const btn = document.getElementById('submit-btn');
+        const guestsSel = document.getElementById('guests');
+        const selectedOption = guestsSel.options[guestsSel.selectedIndex];
+        
+        if (selectedOption && selectedOption.dataset.waitlistType) {
+            const type = selectedOption.dataset.waitlistType;
+            btn.innerText = `該時段${type}額滿，送出候補資料`;
+        } else {
+            btn.innerText = "確認訂位";
         }
     }
 
@@ -151,7 +182,9 @@
             name: document.getElementById('name').value,
             ig: document.getElementById('ig').value
         };
-        if(!payload.name || !payload.ig) { alert("請完整填寫姓名與 IG"); return; }
+        if(!payload.name || !payload.ig) { alert("請填寫姓名與 IG"); return; }
+        
+        const originalText = btn.innerText;
         btn.disabled = true;
         btn.innerText = "處理中...";
 
@@ -161,11 +194,15 @@
             document.getElementById('booking-form').style.display = 'none';
             document.getElementById('result-area').style.display = 'block';
             if(data.result === 'waitlist') {
-                document.getElementById('res-title').innerText = "候補提醒";
+                document.getElementById('res-title').innerText = "已為您安排候補";
                 document.getElementById('res-success').style.display = 'none';
                 document.getElementById('res-waitlist').style.display = 'block';
             }
-        } catch(e) { alert("送出失敗"); btn.disabled = false; }
+        } catch(e) { 
+            alert("送出失敗"); 
+            btn.disabled = false; 
+            btn.innerText = originalText;
+        }
     }
 </script>
 </body>
