@@ -100,15 +100,20 @@
 </div>
 
 <script>
-    const GAS_URL = 'https://soundsnice286.github.io/booking-system/';
-    let apiData = null;
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyD4Jf9KyrFk0hnXY5ot9oUxZBKkOxCCX8DtFcRX5VPBCqR--_Yjpq5Gr7RUhjuY-uWJg/exec'; // <--- 請更換這裡
+    let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
 
     window.onload = async () => {
         try {
             const res = await fetch(GAS_URL);
-            apiData = await res.json();
+            if(res.ok) {
+                apiData = await res.json();
+            }
+        } catch (e) { 
+            console.log("正在使用預設名額配置"); 
+        } finally {
             updateOptions();
-        } catch (e) { console.error("無法取得名額"); }
+        }
     };
 
     function updateOptions() {
@@ -116,13 +121,12 @@
         const timeSelect = document.getElementById('time');
         timeSelect.innerHTML = '';
         const sessions = ["17:30~20:30", "21:30~00:30"];
-        const lim = { small: 5, large: 3 }; // 基礎大類限制
         
         sessions.forEach(s => {
-            const booked = (apiData && apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
+            const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
                           apiData.bookedData[dateVal][s] : { small: 0, large: 0 };
             
-            const isFullyBooked = (booked.small >= lim.small && booked.large >= lim.large);
+            const isFullyBooked = (booked.small >= apiData.limits.small && booked.large >= apiData.limits.large);
             const option = document.createElement('option');
             option.value = s;
             option.innerText = isFullyBooked ? `${s} (額滿，可候補)` : s;
@@ -135,13 +139,13 @@
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const guestsSel = document.getElementById('guests');
-        const booked = (apiData && apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
-        const lim = { single: 2, small: 5, large: 3, fiveSix: 2 };
+        const booked = (apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
+        const lim = apiData.limits;
 
         guestsSel.innerHTML = "";
         for(let i=1; i<=6; i++) {
             let isFull = false;
-            let type = ""; // 紀錄是哪種類型額滿
+            let type = "";
             if(i === 1) { 
                 if(booked.single >= lim.single || booked.small >= lim.small) { isFull = true; type = "吧檯位"; }
             } else if(i === 2) { 
@@ -164,10 +168,8 @@
         const btn = document.getElementById('submit-btn');
         const guestsSel = document.getElementById('guests');
         const selectedOption = guestsSel.options[guestsSel.selectedIndex];
-        
         if (selectedOption && selectedOption.dataset.waitlistType) {
-            const type = selectedOption.dataset.waitlistType;
-            btn.innerText = `該時段${type}額滿，送出候補資料`;
+            btn.innerText = `該時段${selectedOption.dataset.waitlistType}額滿，送出候補資料`;
         } else {
             btn.innerText = "確認訂位";
         }
@@ -184,24 +186,28 @@
         };
         if(!payload.name || !payload.ig) { alert("請填寫姓名與 IG"); return; }
         
-        const originalText = btn.innerText;
         btn.disabled = true;
         btn.innerText = "處理中...";
 
         try {
-            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-            const data = await res.json();
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors', // 解決大多數跨網域問題
+                body: JSON.stringify(payload)
+            });
+            // no-cors 下無法讀取 response 內容，我們預設成功並延遲顯示結果
             document.getElementById('booking-form').style.display = 'none';
             document.getElementById('result-area').style.display = 'block';
-            if(data.result === 'waitlist') {
+            
+            // 根據按鈕原本文字決定顯示內容
+            if(btn.innerText.includes("候補")) {
                 document.getElementById('res-title').innerText = "已為您安排候補";
                 document.getElementById('res-success').style.display = 'none';
                 document.getElementById('res-waitlist').style.display = 'block';
             }
         } catch(e) { 
-            alert("送出失敗"); 
+            alert("送出失敗，請檢查網路或私訊 IG"); 
             btn.disabled = false; 
-            btn.innerText = originalText;
         }
     }
 </script>
