@@ -11,14 +11,26 @@
         ul { padding-left: 20px; font-size: 0.95rem; }
         .form-group { margin-bottom: 15px; position: relative; }
         label { display: inline-block; font-weight: bold; margin-bottom: 5px; }
+        /* 紅圈處提醒文字：紅色小字，無括號 */
         .full-hint { color: #d93025; font-size: 0.85rem; font-weight: normal; margin-left: 10px; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .checkbox-container { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; font-size: 0.9rem; }
         .checkbox-container input { width: auto; margin-top: 5px; }
         button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        #result-area { display: none; text-align: center; padding: 40px 0; }
+        
+        /* 結果頁面樣式 */
+        #result-area { display: none; padding: 40px 0; }
+        #res-title { text-align: center; margin-bottom: 20px; }
+        .res-content-wrapper { 
+            text-align: left; 
+            max-width: 350px; 
+            margin: 0 auto; 
+            line-height: 1.8;
+            font-size: 1rem;
+        }
         .footer { text-align: center; margin-top: 40px; font-size: 0.8rem; }
+        .center-btn { text-align: center; margin-top: 30px; }
     </style>
 </head>
 <body>
@@ -86,14 +98,19 @@
 
 <div id="result-area">
     <h2 id="res-title">資料送出成功。</h2>
-    <div id="res-success">
-        <p>收到私訊後，<br>須在 <b>24 小時內回覆</b>，訂位才正式成立。</p>
+    
+    <div id="res-success" class="res-content-wrapper">
+        <p>請留意 IG 私訊，收到私訊後，請在 <b>24小時</b> 內回覆，訂位才會正式成立。</p>
     </div>
-    <div id="res-waitlist" style="display:none; text-align: center;">
-        <p>您好，如有釋出位置會盡快透過訊息通知，<br>若沒有座位的話就不會另行通知。</p>
+    
+    <div id="res-waitlist" class="res-content-wrapper" style="display:none;">
+        <p>您好，如有釋出位置會盡快透過ＩＧ訊息通知，<br>若沒有座位的話就不會另行通知。</p>
         <p style="font-size: 0.85rem; color: #888; margin-top:20px;">如需取消候補可以私訊 IG 通知我們，非常感謝您。</p>
     </div>
-    <button onclick="location.reload()" style="background:#666; margin-top:20px;">返回首頁</button>
+
+    <div class="center-btn">
+        <button onclick="location.reload()" style="background:#666; width: auto; padding: 10px 40px;">返回首頁</button>
+    </div>
 </div>
 
 <div class="footer">
@@ -109,7 +126,7 @@
         try {
             const res = await fetch(GAS_URL);
             if(res.ok) apiData = await res.json();
-        } catch (e) { console.log("使用預設配置"); }
+        } catch (e) { console.log("正在使用預設名額配置"); }
         updateOptions();
     };
 
@@ -139,17 +156,15 @@
         guestsSel.innerHTML = "";
         for(let i=1; i<=6; i++) {
             let isFull = false;
-            let type = "";
-            if(i === 1) { if(booked.single >= lim.single || booked.small >= lim.small) { isFull = true; type = "吧檯位"; } }
-            else if(i === 2) { if(booked.small >= lim.small) { isFull = true; type = "小桌"; } }
-            else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) { isFull = true; type = "大桌"; } }
-            else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) { isFull = true; type = "大桌"; } }
+            if(i === 1) { if(booked.single >= lim.single || booked.small >= lim.small) isFull = true; }
+            else if(i === 2) { if(booked.small >= lim.small) isFull = true; }
+            else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) isFull = true; }
+            else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; }
 
             let label = i + " 位" + (i===1?" (吧檯座位)":"");
-            // 依要求修改後綴文字
             let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
             let option = new Option(optionText, i);
-            if(isFull) option.dataset.type = type;
+            if(isFull) option.dataset.waitlist = "true";
             guestsSel.add(option);
         }
         updateButtonText();
@@ -160,8 +175,8 @@
         const info = document.getElementById('waitlist-info');
         const selected = document.getElementById('guests').selectedOptions[0];
         
-        if (selected && selected.dataset.type) {
-            info.innerText = `• 該${selected.dataset.type}額滿，可候補`;
+        if (selected && selected.dataset.waitlist === "true") {
+            info.innerText = `• 該選項額滿，可候補`;
             btn.innerText = "我要候補";
         } else {
             info.innerText = "";
@@ -200,8 +215,9 @@
                 document.getElementById('res-waitlist').style.display = 'block';
             }
         } catch(e) { 
-            alert("送出失敗，請重試或聯繫 IG"); 
+            alert("送出失敗，請檢查 GAS 連結是否正確或私訊 IG"); 
             btn.disabled = false;
+            btn.innerText = isWaitlist ? "我要候補" : "確認訂位";
         }
     }
 </script>
