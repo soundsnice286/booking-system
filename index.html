@@ -73,3 +73,169 @@
             <li>僅供內用：全店無外帶服務。</li>
         </ul>
     </div>
+
+    <div class="form-group">
+        <label>日期</label>
+        <select id="date" onchange="updateOptions()">
+            <option value="2026-02-19">2026-02-19 (週四)</option>
+            <option value="2026-02-28">2026-02-28 (週六)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>時段</label>
+        <select id="time" onchange="updateGuestOptions()"></select>
+    </div>
+
+    <div class="form-group">
+        <label>預約人數</label>
+        <span id="waitlist-info" class="full-hint"></span>
+        <select id="guests" onchange="updateButtonText()"></select>
+    </div>
+
+    <div class="form-group">
+        <label>姓名</label>
+        <input type="text" id="name">
+    </div>
+
+    <div class="form-group">
+        <label>Instagram 帳號</label>
+        <input type="text" id="ig" placeholder="@">
+    </div>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="agree" onchange="document.getElementById('submit-btn').disabled = !this.checked">
+        <label for="agree">訂位即為同意上述「訂位須知」與「用餐須知」。</label>
+    </div>
+
+    <button id="submit-btn" disabled onclick="submitForm()">確認訂位</button>
+</div>
+
+<div id="result-area">
+    <h2 id="res-title">資料送出成功。</h2>
+    
+    <div id="res-success" class="res-content-wrapper">
+        <p>請留意 IG 私訊。<br>
+        收到私訊後，請在 <b>24小時</b> 內回覆，<br>
+        訂位才會正式成立。</p>
+    </div>
+    
+    <div id="res-waitlist" class="res-content-wrapper" style="display:none;">
+        <p>您好，如有釋出位置會盡快透過ＩＧ訊息通知，<br>若沒有座位的話就不會另行通知。</p>
+        <p style="font-size: 0.85rem; color: #888; margin-top:20px;">如需取消候補可以私訊 IG 通知我們，非常感謝您。</p>
+    </div>
+
+    <div class="center-btn">
+        <button onclick="location.reload()" style="background:#666; width: auto; padding: 10px 40px;">返回首頁</button>
+    </div>
+</div>
+
+<div class="footer">
+    <a href="https://www.instagram.com/soundsnice.obj/" target="_blank" class="ig-button">好像不錯的 Instagram</a>
+    <p>© 2026 Sounds Nice.</p>
+</div>
+
+<script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyD4Jf9KyrFk0hnXY5ot9oUxZBKkOxCCX8DtFcRX5VPBCqR--_Yjpq5Gr7RUhjuY-uWJg/exec'; 
+    let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
+
+    window.onload = async () => {
+        try {
+            const res = await fetch(GAS_URL);
+            if(res.ok) apiData = await res.json();
+        } catch (e) { console.log("使用預設配置"); }
+        updateOptions();
+    };
+
+    function updateOptions() {
+        const dateVal = document.getElementById('date').value;
+        const timeSelect = document.getElementById('time');
+        timeSelect.innerHTML = '';
+        const sessions = ["17:30~20:30", "21:30~00:30"];
+        
+        sessions.forEach(s => {
+            const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
+                          apiData.bookedData[dateVal][s] : { small: 0, large: 0 };
+            const isFull = (booked.small >= apiData.limits.small && booked.large >= apiData.limits.large);
+            const option = new Option(isFull ? `${s} (額滿，可候補)` : s, s);
+            timeSelect.add(option);
+        });
+        updateGuestOptions();
+    }
+
+    function updateGuestOptions() {
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const guestsSel = document.getElementById('guests');
+        const booked = (apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
+        const lim = apiData.limits;
+
+        guestsSel.innerHTML = "";
+        for(let i=1; i<=6; i++) {
+            let isFull = false;
+            if(i === 1) { if(booked.single >= lim.single || booked.small >= lim.small) isFull = true; }
+            else if(i === 2) { if(booked.small >= lim.small) isFull = true; }
+            else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) isFull = true; }
+            else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; }
+
+            let label = i + " 位" + (i===1?" (吧檯座位)":"");
+            let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
+            let option = new Option(optionText, i);
+            if(isFull) option.dataset.waitlist = "true";
+            guestsSel.add(option);
+        }
+        updateButtonText();
+    }
+
+    function updateButtonText() {
+        const btn = document.getElementById('submit-btn');
+        const info = document.getElementById('waitlist-info');
+        const selected = document.getElementById('guests').selectedOptions[0];
+        
+        if (selected && selected.dataset.waitlist === "true") {
+            info.innerText = `• 該選項額滿，可候補`;
+            btn.innerText = "我要候補";
+        } else {
+            info.innerText = "";
+            btn.innerText = "確認訂位";
+        }
+    }
+
+    async function submitForm() {
+        const btn = document.getElementById('submit-btn');
+        const payload = {
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            guests: document.getElementById('guests').value,
+            name: document.getElementById('name').value,
+            ig: document.getElementById('ig').value
+        };
+        if(!payload.name || !payload.ig) { alert("請填寫姓名與 IG"); return; }
+        
+        btn.disabled = true;
+        const isWaitlist = (btn.innerText === "我要候補");
+        btn.innerText = "處理中...";
+
+        try {
+            await fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                body: JSON.stringify(payload)
+            });
+            
+            document.getElementById('booking-form').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+            if(isWaitlist) {
+                document.getElementById('res-title').innerText = "已為您安排候補";
+                document.getElementById('res-success').style.display = 'none';
+                document.getElementById('res-waitlist').style.display = 'block';
+            }
+        } catch(e) { 
+            alert("送出失敗，請檢查網路或私訊 IG"); 
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
