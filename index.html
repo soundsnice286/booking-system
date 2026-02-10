@@ -5,52 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂位，好像不錯。</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .container { background: white; padding: 20px; }
-        h2 { font-size: 24px; margin-bottom: 20px; }
-        h3 { font-size: 18px; margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        ul { padding-left: 20px; margin-bottom: 20px; }
-        li { margin-bottom: 8px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        button:disabled { background: #888; }
+        body { font-family: -apple-system, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 25px; }
+        h2 { font-size: 1.5rem; margin-bottom: 10px; }
+        h3 { font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 20px; }
+        ul { padding-left: 20px; font-size: 0.9rem; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 1rem; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; font-size: 0.9rem; color: #555; }
+        .checkbox-group input { width: auto; margin-top: 5px; }
+        button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         #result-area { display: none; text-align: center; padding: 40px 0; }
-        .note { font-size: 13px; color: #666; margin-top: 10px; }
-        .footer { text-align: center; margin-top: 40px; font-size: 14px; }
-        .footer a { color: #333; text-decoration: none; }
+        .footer { text-align: center; margin-top: 40px; font-size: 0.8rem; color: #888; }
     </style>
 </head>
 <body>
 
-<div id="main-content">
+<div id="booking-ui">
     <h2>訂位，好像不錯。</h2>
     
     <div class="section">
         <h3>📅 預約須知</h3>
         <ul>
-            <li>訂位成立：<b>請確保 IG 帳號填寫正確</b>。收到私訊後，須在 <b>24 小時內回覆</b>，訂位才正式成立。</li>
-            <li>座位保留：座位僅保留 <b>15 分鐘</b>，逾時視同取消，不另行通知。</li>
-            <li>用餐時間：僅限預約時段內，無法延長加時。</li>
+            <li>訂位成立：<b>請確保 IG 帳號填寫正確</b>。收到私訊後，須在 24 小時內回覆，訂位才正式成立。</li>
+            <li>座位保留：座位僅保留 15 分鐘，逾時視同取消。</li>
             <li>人數規範：每組最多 6 位，恕不接待 8 歲以下兒童。</li>
-            <li>座位安排：依訂位順序與人數入場選擇座位。</li>
-            <li>最低消費：每人 <b>NT.160元</b>（依訂位人數計算）。</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h3>🍽️ 用餐須知</h3>
-        <ul>
-            <li>寧靜環境：本店空間寧靜，請降低說話音量並放輕腳步。</li>
-            <li>禁止外食：禁帶外食與飲料，無提供代管或垃圾丟棄服務。</li>
-            <li>僅供內用：全店無外帶服務。</li>
+            <li>最低消費：每人 NT.160元（依訂位人數計算）。</li>
         </ul>
     </div>
 
     <div class="form-group">
         <label>日期</label>
-        <select id="date">
+        <select id="date" onchange="checkAvailability()">
             <option value="2026-02-19">2026-02-19 (週四)</option>
             <option value="2026-02-28">2026-02-28 (週六)</option>
         </select>
@@ -58,7 +46,7 @@
 
     <div class="form-group">
         <label>時段</label>
-        <select id="time">
+        <select id="time" onchange="checkAvailability()">
             <option value="17:30~20:30">17:30~20:30</option>
             <option value="21:30~00:30">21:30~00:30</option>
         </select>
@@ -78,16 +66,20 @@
 
     <div class="form-group">
         <label>姓名</label>
-        <input type="text" id="name" placeholder="您的姓名">
+        <input type="text" id="name" placeholder="請輸入姓名">
     </div>
 
     <div class="form-group">
         <label>Instagram 帳號</label>
-        <input type="text" id="ig" placeholder="@example_id">
+        <input type="text" id="ig" placeholder="@">
     </div>
 
-    <p class="note">訂位即為同意上述「訂位須知」與「用餐須知」。</p>
-    <button id="submit-btn" onclick="submitBooking()">確認訂位</button>
+    <div class="checkbox-group">
+        <input type="checkbox" id="agree" onchange="toggleBtn()">
+        <label for="agree">我已閱讀並同意上述「預約須知」與「用餐須知」，並確認 IG 帳號填寫正確。</label>
+    </div>
+
+    <button id="submit-btn" disabled onclick="submitForm()">確認訂位</button>
 </div>
 
 <div id="result-area">
@@ -97,55 +89,61 @@
     </div>
     <div id="waitlist-msg" style="display:none;">
         <p>有釋出位置會盡快透過訊息通知，<br>沒有座位的話就不會另行通知。</p>
-        <p class="note">如需取消候位可以私訊 IG 通知我們，非常感謝您。</p>
+        <p style="font-size: 0.8rem; color: #888; margin-top:20px;">如需取消候位可以私訊 IG 通知我們，非常感謝您。</p>
     </div>
-    <br>
-    <button onclick="location.reload()" style="background:#666;">返回首頁</button>
+    <button onclick="location.reload()" style="margin-top:30px; background:#666;">返回首頁</button>
 </div>
 
 <div class="footer">
-    <p><a href="https://www.instagram.com/soundsnice.obj/" target="_blank">好像不錯的 Instagram</a></p>
+    <p><a href="https://www.instagram.com/soundsnice.obj/" target="_blank" style="color:#000;">好像不錯的 Instagram</a></p>
     <p>© 2026 Sounds Nice.</p>
 </div>
 
 <script>
-async function submitBooking() {
-    const btn = document.getElementById('submit-btn');
-    const data = {
-        date: document.getElementById('date').value,
-        time: document.getElementById('time').value,
-        guests: document.getElementById('guests').value,
-        name: document.getElementById('name').value,
-        ig: document.getElementById('ig').value
-    };
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyH3Ke-abwKOuMANMxlopezthRaTSdbF9Ce3E67VSSyUd7a1Vm-gGwmL6GRhWEiQDUwfQ/exec';
 
-    if(!data.name || !data.ig) { alert('請完整填寫姓名與 IG'); return; }
-
-    btn.disabled = true;
-    btn.innerText = '處理中...';
-
-    try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbym4ewFdbf_vUB9CUKD6spdTAFM3XTNNSQ3pvawY57UB8JghRHiCaB1y3gGvOC7yOXEEA/exec', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
-
-        document.getElementById('main-content').style.display = 'none';
-        document.getElementById('result-area').style.display = 'block';
-
-        if(result.result === 'waitlist') {
-            document.getElementById('result-title').innerText = '候補提醒';
-            document.getElementById('success-msg').style.display = 'none';
-            document.getElementById('waitlist-msg').style.display = 'block';
-        }
-    } catch (e) {
-        alert('送出失敗，請私訊 IG 訂位');
-        btn.disabled = false;
-        btn.innerText = '確認訂位';
+    function toggleBtn() {
+        document.getElementById('submit-btn').disabled = !document.getElementById('agree').checked;
     }
-}
-</script>
 
+    // 模擬讀取 GAS 狀態並在選單標註候補 (這部分需配合您的 doGet)
+    async function checkAvailability() {
+        // 您可以透過 fetch(GAS_URL) 取得 bookedData，然後動態修改 #guests 的 option 內容
+        // 這裡先實作 UI 邏輯
+    }
+
+    async function submitForm() {
+        const btn = document.getElementById('submit-btn');
+        const data = {
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            guests: document.getElementById('guests').value,
+            name: document.getElementById('name').value,
+            ig: document.getElementById('ig').value
+        };
+
+        if(!data.name || !data.ig) { alert('請填寫完整資料'); return; }
+
+        btn.disabled = true;
+        btn.innerText = '處理中...';
+
+        try {
+            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) });
+            const result = await res.json();
+            
+            document.getElementById('booking-ui').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+
+            if(result.result === 'waitlist') {
+                document.getElementById('result-title').innerText = '候補提醒';
+                document.getElementById('success-msg').style.display = 'none';
+                document.getElementById('waitlist-msg').style.display = 'block';
+            }
+        } catch(e) {
+            alert('系統錯誤，請私訊 IG');
+            btn.disabled = false;
+        }
+    }
+</script>
 </body>
 </html>
