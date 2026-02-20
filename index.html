@@ -18,33 +18,13 @@
         button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         
-        /* 結果頁面樣式 */
         #result-area { display: none; padding: 40px 0; }
         #res-title { text-align: center; margin-bottom: 20px; }
-        .res-content-wrapper { 
-            text-align: left; 
-            max-width: 350px; 
-            margin: 0 auto; 
-            line-height: 1.8;
-            font-size: 1rem;
-        }
+        .res-content-wrapper { text-align: left; max-width: 350px; margin: 0 auto; line-height: 1.8; font-size: 1rem; }
         
-        /* 頁尾 Instagram 淺灰底按鈕 */
         .footer { text-align: center; margin-top: 60px; font-size: 0.8rem; }
-        .ig-button {
-            display: inline-block;
-            background-color: #f2f2f2;
-            color: #555;
-            padding: 8px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 500;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
-            transition: background 0.3s;
-        }
+        .ig-button { display: inline-block; background-color: #f2f2f2; color: #555; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 500; margin-bottom: 15px; border: 1px solid #e0e0e0; transition: background 0.3s; }
         .ig-button:hover { background-color: #e8e8e8; }
-        
         .center-btn { text-align: center; margin-top: 30px; }
     </style>
 </head>
@@ -113,18 +93,13 @@
 
 <div id="result-area">
     <h2 id="res-title">資料送出成功。</h2>
-    
     <div id="res-success" class="res-content-wrapper">
-        <p>請留意 IG 私訊。<br>
-        收到私訊後，請在 <b>24小時</b> 內回覆，<br>
-        訂位才會正式成立。</p>
+        <p>請留意 IG 私訊。<br>收到私訊後，請在 <b>24小時</b> 內回覆，<br>訂位才會正式成立。</p>
     </div>
-    
     <div id="res-waitlist" class="res-content-wrapper" style="display:none;">
         <p>您好，如有釋出位置會盡快透過ＩＧ訊息通知，<br>若沒有座位的話就不會另行通知。</p>
         <p style="font-size: 0.85rem; color: #888; margin-top:20px;">如需取消候補可以私訊 IG 通知我們，非常感謝您。</p>
     </div>
-
     <div class="center-btn">
         <button onclick="location.reload()" style="background:#666; width: auto; padding: 10px 40px;">返回首頁</button>
     </div>
@@ -136,7 +111,7 @@
 </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxxLu658oxgJcQuWsBjXSQ_4ruNrt3v8SSgDOJIF5csVGlQfy0valrBnqH2CPugGYCAog/exec'; 
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxWoAATgh73GmAAbpXvf2xQAuk6iTPCEMZIAulF3ElAND8-mzJCEAdhTtPctKCAQB3Zdw/exec'; 
     let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
 
     window.onload = async () => {
@@ -155,7 +130,6 @@
         const btn = document.getElementById('submit-btn');
         timeSelect.innerHTML = '';
         
-        // 判斷日期是否已過或當天已過 14:00
         const now = new Date();
         const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         const currentTime = now.getHours() * 100 + now.getMinutes();
@@ -165,15 +139,17 @@
 
         if (isPast || isTodayDeadline) {
             const option = new Option("該日預約截止", "");
-            option.disabled = true;
             timeSelect.add(option);
+            timeSelect.disabled = true;
             guestsSel.innerHTML = "";
+            guestsSel.disabled = true;
             btn.disabled = true;
             btn.innerText = "預約截止";
             return;
         }
 
-        // 正常日期顯示邏輯
+        timeSelect.disabled = false;
+        guestsSel.disabled = false;
         const sessions = ["17:30~20:30", "21:30~00:30"];
         sessions.forEach(s => {
             const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
@@ -192,12 +168,10 @@
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const guestsSel = document.getElementById('guests');
-        
-        if (!time) return; // 若無時段則不執行
+        if (!time || document.getElementById('time').disabled) return; 
 
         const booked = (apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
         const lim = apiData.limits;
-
         guestsSel.innerHTML = "";
         for(let i=1; i<=6; i++) {
             let isFull = false;
@@ -205,7 +179,6 @@
             else if(i === 2) { if(booked.small >= lim.small) isFull = true; }
             else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) isFull = true; }
             else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; }
-
             let label = i + " 位" + (i===1?" (吧檯座位)":"");
             let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
             let option = new Option(optionText, i);
@@ -219,10 +192,7 @@
         const btn = document.getElementById('submit-btn');
         const info = document.getElementById('waitlist-info');
         const selected = document.getElementById('guests').selectedOptions[0];
-        
-        // 若已截止，不更動按鈕文字
         if (btn.innerText === "預約截止") return;
-
         if (selected && selected.dataset.waitlist === "true") {
             info.innerText = `• 該選項額滿，可候補`;
             btn.innerText = "我要候補";
@@ -242,19 +212,11 @@
             ig: document.getElementById('ig').value
         };
         if(!payload.name || !payload.ig) { alert("請填寫姓名與 IG"); return; }
-        
         btn.disabled = true;
         const isWaitlist = (btn.innerText === "我要候補");
         btn.innerText = "處理中...";
-
         try {
-            await fetch(GAS_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                body: JSON.stringify(payload)
-            });
-            
+            await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', cache: 'no-cache', body: JSON.stringify(payload) });
             document.getElementById('booking-form').style.display = 'none';
             document.getElementById('result-area').style.display = 'block';
             if(isWaitlist) {
