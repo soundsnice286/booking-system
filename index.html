@@ -101,7 +101,7 @@
 </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyL2NBZ56nL2bFbyqBfdyK0et8QPlvtTtvsL1mJUA1HE2wTCpjqKykL7iUDjoV8KVdQGA/exec'; 
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjeAM6uQZERCSeO4lX2keqBCvQYxCSlk0WCUqjRg0MDOvyNKVaC3FUZokQbKIiATcALg/exec'; 
     let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
 
     window.onload = async () => {
@@ -116,13 +116,18 @@
         const dateVal = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
         const now = new Date();
+        
+        // 取得今日日期字串 YYYY-MM-DD
         const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         
         timeSelect.innerHTML = '';
         
-        // --- 需求 1：當天 14:00 後關閉選項 ---
-        if (dateVal === todayStr && now.getHours() >= 14) {
-            timeSelect.add(new Option("今日預約已截止", ""));
+        // 判斷是否為過期日期或當日 14:00 後
+        const isExpired = dateVal < todayStr;
+        const isTodayCutoff = (dateVal === todayStr && now.getHours() >= 14);
+
+        if (isExpired || isTodayCutoff) {
+            timeSelect.add(new Option("該日預約已截止", ""));
             document.getElementById('guests').innerHTML = "";
             updateButtonText();
             return;
@@ -171,7 +176,7 @@
 
         if (!timeVal) {
             info.innerText = "";
-            btn.innerText = "今日預約截止";
+            btn.innerText = "該日預約已截止";
             btn.disabled = true;
             return;
         }
