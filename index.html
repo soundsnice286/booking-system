@@ -84,7 +84,7 @@
     </div>
 
     <div class="checkbox-container">
-        <input type="checkbox" id="agree" onchange="document.getElementById('submit-btn').disabled = !this.checked">
+        <input type="checkbox" id="agree" onchange="updateAgreeStatus()">
         <label for="agree">訂位即為同意上述「訂位須知」與「用餐須知」。</label>
     </div>
 
@@ -111,6 +111,7 @@
 </div>
 
 <script>
+    // 請確認此處 URL 為您最新的部署網址
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4Lsza838nWf4e5S54sYD9GX_7XFXVBE9TyeUplcP9xqTQDguHjpMfhBahsE2RqeC80A/exec'; 
     let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
 
@@ -128,6 +129,10 @@
         const timeSelect = document.getElementById('time');
         const guestsSel = document.getElementById('guests');
         const btn = document.getElementById('submit-btn');
+        const nameInput = document.getElementById('name');
+        const igInput = document.getElementById('ig');
+        const agreeCheck = document.getElementById('agree');
+        
         timeSelect.innerHTML = '';
         
         const now = new Date();
@@ -138,18 +143,27 @@
         const isTodayDeadline = (dateVal === todayStr && currentTime >= 1400);
 
         if (isPast || isTodayDeadline) {
-            const option = new Option("該日預約截止", "");
-            timeSelect.add(option);
+            // --- 鎖定邏輯開始 ---
+            timeSelect.add(new Option("該日預約截止", ""));
             timeSelect.disabled = true;
             guestsSel.innerHTML = "";
             guestsSel.disabled = true;
+            nameInput.disabled = true;
+            igInput.disabled = true;
+            agreeCheck.disabled = true;
             btn.disabled = true;
             btn.innerText = "預約截止";
             return;
+            // --- 鎖定邏輯結束 ---
         }
 
+        // 恢復一般狀態
         timeSelect.disabled = false;
         guestsSel.disabled = false;
+        nameInput.disabled = false;
+        igInput.disabled = false;
+        agreeCheck.disabled = false;
+        
         const sessions = ["17:30~20:30", "21:30~00:30"];
         sessions.forEach(s => {
             const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
@@ -159,9 +173,8 @@
             timeSelect.add(option);
         });
         
-        btn.innerText = "確認訂位";
-        btn.disabled = !document.getElementById('agree').checked;
         updateGuestOptions();
+        updateAgreeStatus(); // 重新檢查勾選狀態
     }
 
     function updateGuestOptions() {
@@ -192,7 +205,8 @@
         const btn = document.getElementById('submit-btn');
         const info = document.getElementById('waitlist-info');
         const selected = document.getElementById('guests').selectedOptions[0];
-        if (btn.innerText === "預約截止") return;
+        if (btn.innerText === "預預截止") return; // 截止時不變動文字
+        
         if (selected && selected.dataset.waitlist === "true") {
             info.innerText = `• 該選項額滿，可候補`;
             btn.innerText = "我要候補";
@@ -202,8 +216,20 @@
         }
     }
 
+    function updateAgreeStatus() {
+        const btn = document.getElementById('submit-btn');
+        const agreeCheck = document.getElementById('agree');
+        // 只有在非截止狀態下，勾選框才能控制按鈕啟用
+        if (btn.innerText !== "預約截止") {
+            btn.disabled = !agreeCheck.checked;
+        }
+    }
+
     async function submitForm() {
         const btn = document.getElementById('submit-btn');
+        // 最後一道防線：截止則不執行
+        if(btn.innerText === "預約截止") return;
+
         const payload = {
             date: document.getElementById('date').value,
             time: document.getElementById('time').value,
@@ -212,6 +238,7 @@
             ig: document.getElementById('ig').value
         };
         if(!payload.name || !payload.ig) { alert("請填寫姓名與 IG"); return; }
+        
         btn.disabled = true;
         const isWaitlist = (btn.innerText === "我要候補");
         btn.innerText = "處理中...";
