@@ -37,7 +37,7 @@
         <h3>📅 預約須知</h3>
         <ul>
             <li>訂位成立：<b>請確保 IG 帳號填寫正確</b>。<br>收到私訊後，須在 <b>24 小時內回覆</b>，訂位才正式成立。</li>
-            <li>座位保留：座位僅保留 <b>15 分鐘</b>，逾時視同取消，不另行通知。</li>
+            <li>座位保留：座位僅保留 <b>10 分鐘</b>，逾時視同取消，不另行通知。</li>
             <li>用餐時間：僅限預約時段內，無法延長加時。</li>
             <li>人數規範：每組最多 6 位，恕不接待 8 歲以下兒童。</li>
             <li>座位安排：依訂位順序與人數入場選擇座位。</li>
@@ -57,8 +57,8 @@
     <div class="form-group">
         <label>日期</label>
         <select id="date" onchange="updateOptions()">
-            <option value="2026-02-19">2026-02-19 (週四)</option>
-            <option value="2026-02-28">2026-02-28 (週六)</option>
+            <option value="2026-04-04">2026-04-04 (週六)</option>
+            <option value="2026-04-05">2026-04-05 (週日)</option>
         </select>
     </div>
 
@@ -147,7 +147,6 @@
             guestsSel.innerHTML = "";
             guestsSel.disabled = true;
             
-            // 截止時鎖定所有欄位
             nameInput.disabled = true;
             igInput.disabled = true;
             agreeCheck.disabled = true;
@@ -156,14 +155,20 @@
             return;
         }
 
-        // 正常狀態解除鎖定
         timeSelect.disabled = false;
         guestsSel.disabled = false;
         nameInput.disabled = false;
         igInput.disabled = false;
         agreeCheck.disabled = false;
         
-        const sessions = ["17:30~20:30", "21:30~00:30"];
+        // 根據日期設定時段
+        let sessions = [];
+        if (dateVal === "2026-04-04") {
+            sessions = ["19:15~21:45", "22:00~00:30"];
+        } else if (dateVal === "2026-04-05") {
+            sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
+        }
+
         sessions.forEach(s => {
             const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
                           apiData.bookedData[dateVal][s] : { small: 0, large: 0 };
