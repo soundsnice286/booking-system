@@ -152,7 +152,7 @@
         const currentTime = now.getHours() * 100 + now.getMinutes();
         
         const isPast = dateVal < todayStr;
-        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1400);
+        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1730);
 
         if (isPast || isTodayDeadline) {
             timeSelect.add(new Option("該日預約截止", ""));
