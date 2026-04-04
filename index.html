@@ -150,10 +150,17 @@
         const now = new Date();
         const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         const currentTime = now.getHours() * 100 + now.getMinutes();
-        
+
         const isPast = dateVal < todayStr;
-        // --- 改當日預約截止時間:下一行數字 ---
-        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1400);
+        
+        // 1. 判定是否為「今天」且「超過截止時間」
+        const isToday = (dateVal === todayStr);
+        const isAfterDeadline = (currentTime >= 1730); // 這裡改截止時間
+        
+        // 2. 只有當日期是過去，或是「今天是當天且已過截止時」，才初步判定可能截止
+        // 但我們不直接在這裡 return，要移到下方判斷完 sessions 後再處理
+        const timeExpired = isPast || (isToday && isAfterDeadline);
+     
 
         if (isPast || isTodayDeadline) {
             timeSelect.add(new Option("該日預約截止", ""));
