@@ -37,7 +37,6 @@
             只有 4/4 和 4/5 開放預約，<br>
             採「時段預約制」。
         </p>
-
         <h3>📝預約三步驟</h3>
         <ol>
             <li>閱讀須知與填寫資料。</li>
@@ -57,7 +56,6 @@
             <li>取消政策：訂位未到，或未於餐期前一小時私訊取消，將影響訂位權益。</li>
         </ul>
     </div>
-
     <div class="section">
         <h3>🍽️ 用餐須知</h3>
         <ul>
@@ -71,7 +69,7 @@
         <label>日期</label>
         <select id="date" onchange="updateOptions()">
             <option value="2026-04-04">2026-04-04 (週六)</option>
-            <option value="2026-04-05">2026-04-05 (週日)</option>
+            <option value="2026-04-05" selected>2026-04-05 (週日)</option>
         </select>
     </div>
 
@@ -147,35 +145,35 @@
         
         timeSelect.innerHTML = '';
         
+        // --- 強化版時間判定 ---
         const now = new Date();
-        const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
         const currentTime = now.getHours() * 100 + now.getMinutes();
         
-        // --- 單純時間判定：只受日期時間影響，與人數無關 ---
         const isPast = dateVal < todayStr;
-        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1400); // 此處維持您設定的 1400
+        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1400); 
 
-        if (isPast || isTodayDeadline) {
+        // 強制重置 UI 狀態
+        const shouldLock = (isPast || isTodayDeadline);
+        
+        timeSelect.disabled = shouldLock;
+        guestsSel.disabled = shouldLock;
+        nameInput.disabled = shouldLock;
+        igInput.disabled = shouldLock;
+        agreeCheck.disabled = shouldLock;
+
+        if (shouldLock) {
             timeSelect.add(new Option("該日預約截止", ""));
-            timeSelect.disabled = true;
-            guestsSel.innerHTML = "";
-            guestsSel.disabled = true;
-            nameInput.disabled = true;
-            igInput.disabled = true;
-            agreeCheck.disabled = true;
             btn.disabled = true;
             btn.innerText = "預約截止";
             return;
         }
 
-        // 時間未到，強制開放所有 UI
-        timeSelect.disabled = false;
-        guestsSel.disabled = false;
-        nameInput.disabled = false;
-        igInput.disabled = false;
-        agreeCheck.disabled = false;
-
-        // 設定各日期的時段
+        // 正常開放時段
+        btn.innerText = "確認訂位"; // 確保按鈕文字被重置
         let sessions = [];
         if (dateVal === "2026-04-04") {
             sessions = ["19:15~21:45", "22:00~00:30"];
@@ -186,8 +184,6 @@
         sessions.forEach(s => {
             const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
                           apiData.bookedData[dateVal][s] : { small: 0, large: 0 };
-            
-            // 這裡保留 isFull 僅用於在選單標註 (額滿候補)，不再連動鎖死整個網頁
             const isFull = (booked.small >= apiData.limits.small && booked.large >= apiData.limits.large);
             const option = new Option(isFull ? `${s} (額滿，可候補)` : s, s);
             timeSelect.add(option);
