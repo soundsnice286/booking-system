@@ -154,7 +154,7 @@
         const currentTime = now.getHours() * 100 + now.getMinutes();
         
         const isPast = dateVal < todayStr;
-        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1400); 
+        const isTodayDeadline = (dateVal === todayStr && currentTime >= 1500); 
 
         // 強制重置 UI 狀態
         const shouldLock = (isPast || isTodayDeadline);
