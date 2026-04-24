@@ -178,20 +178,36 @@ function updateOptions() {
         updateGuestOptions();
         handleAgreeChange(); 
     }
-    function updateGuestOptions() {
+ function updateGuestOptions() {
         const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
+        const timeSelect = document.getElementById('time'); // 補上這行，獲取時段選單元件
+        const time = timeSelect.value;
         const guestsSel = document.getElementById('guests');
+        
+        // 確保時段存在且未被鎖定（例如截止或過期）
         if (!time || timeSelect.disabled) return; 
+        
         const booked = (apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
         const lim = apiData.limits;
         guestsSel.innerHTML = "";
+        
         for(let i=1; i<=6; i++) {
             let isFull = false;
-            if(i === 1) { if(booked.single >= lim.single || booked.small >= lim.small) isFull = true; }
-            else if(i === 2) { if(booked.small >= lim.small) isFull = true; }
-            else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) isFull = true; }
-            else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; }
+            // 判斷各人數類別是否額滿
+            if(i === 1) { 
+                if(booked.single >= lim.single || booked.small >= lim.small) isFull = true; 
+            }
+            else if(i === 2) { 
+                if(booked.small >= lim.small) isFull = true; 
+            }
+            else if(i >= 3 && i <= 4) { 
+                if(booked.large >= lim.large) isFull = true; 
+            }
+            else if(i >= 5) { 
+                if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; 
+            }
+            
+            // 建立選項，若是 1 位則標註吧檯座位
             let option = new Option(isFull ? `${i} 位 ：已額滿，我要候補。` : `${i} 位${i===1?" (吧檯座位)":""}`, i);
             if(isFull) option.dataset.waitlist = "true";
             guestsSel.add(option);
