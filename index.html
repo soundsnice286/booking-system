@@ -145,7 +145,7 @@
     const currentTime = now.getHours() * 100 + now.getMinutes();
     
     // 你可以暫時維持 false 測試，確認選單出來後再改回判斷式
-    const shouldLock = false; 
+    const shouldLock = (dateVal < todayStr) || (dateVal === todayStr && currentTime >= 1500);
 
     if (shouldLock) {
         timeSelect.add(new Option("該日預約截止", ""));
