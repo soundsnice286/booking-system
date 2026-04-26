@@ -173,29 +173,49 @@
     
     updateGuestOptions();
 }
-    function updateGuestOptions() {
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
-        const guestsSel = document.getElementById('guests');
-        if (!time || document.getElementById('time').disabled) return; 
+   function updateGuestOptions() {
+    const date = document.getElementById('date').value;
+    const time = document.getElementById('time').value;
+    const guestsSel = document.getElementById('guests');
+    
+    // 如果還沒選時段，就先清空人數選單並跳出
+    if (!time || !guestsSel) return; 
 
-        const booked = (apiData.bookedData[date] && apiData.bookedData[date][time]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
-        const lim = apiData.limits;
-        guestsSel.innerHTML = "";
-        for(let i=1; i<=6; i++) {
-            let isFull = false;
-            if(i === 1) { if(booked.single >= lim.single || booked.small >= lim.small) isFull = true; }
-            else if(i === 2) { if(booked.small >= lim.small) isFull = true; }
-            else if(i >= 3 && i <= 4) { if(booked.large >= lim.large) isFull = true; }
-            else if(i >= 5) { if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true; }
-            let label = i + " 位" + (i===1?" (吧檯座位)":"");
-            let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
-            let option = new Option(optionText, i);
-            if(isFull) option.dataset.waitlist = "true";
-            guestsSel.add(option);
-        }
-        updateButtonText();
+    // --- 核心修正：多層檢查 apiData 結構，避免 undefined 崩潰 ---
+    let booked = { single: 0, small: 0, large: 0, fiveSix: 0 };
+    if (apiData && apiData.bookedData && apiData.bookedData[date] && apiData.bookedData[date][time]) {
+        booked = apiData.bookedData[date]; // 這裡要特別注意 GAS 回傳的層級
+        // 如果你的 getBookingStats 回傳結構是 bookedData[date][time]，則用下一行：
+        booked = apiData.bookedData[date][time];
     }
+    
+    // 確保 limits 永遠有預設值 [cite: 52]
+    const lim = (apiData && apiData.limits) ? apiData.limits : { single: 2, small: 5, large: 3, fiveSix: 2 };
+    
+    guestsSel.innerHTML = "";
+    
+    for(let i=1; i<=6; i++) {
+        let isFull = false;
+        // 判斷各人數級別是否額滿 [cite: 63, 66]
+        if(i === 1) { 
+            if(booked.single >= lim.single || booked.small >= lim.small) isFull = true;
+        } else if(i === 2) { 
+            if(booked.small >= lim.small) isFull = true;
+        } else if(i >= 3 && i <= 4) { 
+            if(booked.large >= lim.large) isFull = true;
+        } else if(i >= 5) { 
+            if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
+        }
+        
+        let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
+        let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
+        let option = new Option(optionText, i);
+        
+        if(isFull) option.dataset.waitlist = "true";
+        guestsSel.add(option);
+    }
+    updateButtonText();
+}
 
     function updateButtonText() {
         const btn = document.getElementById('submit-btn');
