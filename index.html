@@ -132,40 +132,47 @@
     };
 
     function updateOptions() {
-        const dateSelect = document.getElementById('date');
-        const dateVal = dateSelect.value;
-        const timeSelect = document.getElementById('time');
-        const btn = document.getElementById('submit-btn');
-        
-        timeSelect.innerHTML = '';
-        
-        const now = new Date();
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        const currentTime = now.getHours() * 100 + now.getMinutes();
-        
-        const shouldLock = false;
+    const dateSelect = document.getElementById('date');
+    if (!dateSelect) return;
+    const dateVal = dateSelect.value;
+    const timeSelect = document.getElementById('time');
+    const btn = document.getElementById('submit-btn');
+    
+    timeSelect.innerHTML = '';
+    
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const currentTime = now.getHours() * 100 + now.getMinutes();
+    
+    // 你可以暫時維持 false 測試，確認選單出來後再改回判斷式
+    const shouldLock = false; 
 
-        if (shouldLock) {
-            timeSelect.add(new Option("該日預約截止", ""));
-            btn.disabled = true;
-            btn.innerText = "預約截止";
-            return;
-        }
-
-        btn.innerText = "確認訂位"; 
-        let sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
-
-        sessions.forEach(s => {
-            const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) ? 
-                          apiData.bookedData[dateVal][s] : { small: 0, large: 0 };
-            const isFull = (booked.small >= apiData.limits.small && booked.large >= apiData.limits.large);
-            timeSelect.add(new Option(isFull ? `${s} (額滿，可候補)` : s, s));
-        });
-        
-        updateGuestOptions();
-        handleAgreeChange(); 
+    if (shouldLock) {
+        timeSelect.add(new Option("該日預約截止", ""));
+        btn.disabled = true;
+        btn.innerText = "預約截止";
+        return;
     }
 
+    btn.innerText = "確認訂位";
+    let sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
+
+    sessions.forEach(s => {
+        // --- 核心安全修正：確保 booked 永遠有物件，不會 undefined ---
+        let booked = { small: 0, large: 0 };
+        if (apiData && apiData.bookedData && apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) {
+            booked = apiData.bookedData[dateVal][s];
+        }
+        
+        // 確保 limits 也有預設值
+        const limits = (apiData && apiData.limits) ? apiData.limits : { small: 5, large: 3 };
+        const isFull = (booked.small >= limits.small && booked.large >= limits.large);
+        
+        timeSelect.add(new Option(isFull ? `${s} (額滿，可候補)` : s, s));
+    });
+    
+    updateGuestOptions();
+}
     function updateGuestOptions() {
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
