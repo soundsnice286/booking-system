@@ -143,11 +143,11 @@
         const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const currentTime = now.getHours() * 100 + now.getMinutes();
         
-        const shouldLock = (dateVal < todayStr) || (dateVal === todayStr && currentTime >= 1500);
+        const shouldLock = false;
 
         if (shouldLock) {
             timeSelect.add(new Option("該日預約截止", ""));
-            btn.disabled = fales;
+            btn.disabled = true;
             btn.innerText = "預約截止";
             return;
         }
