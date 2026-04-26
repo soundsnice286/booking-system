@@ -67,7 +67,7 @@
     <div class="form-group">
         <label>日期</label>
         <select id="date" onchange="updateOptions()">
-            <option value="2026-05-02" selected>2026-05-02 (週五)</option>
+            <option value="2026-05-02" selected>2026-05-02 (週六)</option>
         </select>
     </div>
 
@@ -147,7 +147,7 @@
 
         if (shouldLock) {
             timeSelect.add(new Option("該日預約截止", ""));
-            btn.disabled = true;
+            btn.disabled = fales;
             btn.innerText = "預約截止";
             return;
         }
