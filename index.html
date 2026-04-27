@@ -132,48 +132,26 @@
     };
 
     function updateOptions() {
-        const dateSelect = document.getElementById('date');
-        if (!dateSelect) return;
-        const dateVal = dateSelect.value;
+        const dateVal = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
-        const btn = document.getElementById('submit-btn');
+        if (!dateVal || !timeSelect) return;
         
         timeSelect.innerHTML = '';
+        const sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
         
-        const now = new Date();
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        const currentTime = now.getHours() * 100 + now.getMinutes();
-        
-        // 修正後的鎖定邏輯
-        const shouldLock = (dateVal < todayStr) || (dateVal === todayStr && currentTime >= 1500);
-
-        if (shouldLock) {
-            timeSelect.add(new Option("該日預約截止", ""));
-            btn.disabled = true;
-            btn.innerText = "預約截止";
-            return;
-        }
-
-        btn.innerText = "確認訂位";
-        let sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
-
         sessions.forEach(s => {
-            // 安全檢查：確保 booked 永遠有預設值，不因 API 延遲而崩潰
-            let booked = { small: 0, large: 0 };
-            if (apiData && apiData.bookedData && apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) {
-                booked = apiData.bookedData[dateVal][s];
-            }
+            // 這裡對接 GAS 傳回的 stats 結構
+            const sData = (apiData.stats && apiData.stats[dateVal] && apiData.stats[dateVal][s]) 
+                          ? apiData.stats[dateVal][s] : {isFull1:false, isFull2:false, large:0, fiveSix:0};
             
-            const limits = (apiData && apiData.limits) ? apiData.limits : { small: 5, large: 3 };
-            const isFull = (booked.small >= limits.small && booked.large >= limits.large);
-            
-            timeSelect.add(new Option(isFull ? `${s} (額滿，可候補)` : s, s));
+            // 判斷該時段是否完全額滿 (1人、2人或大桌只要有一邊滿了，就顯示候補提示)
+            const isAnyFull = sData.isFull1 || sData.isFull2 || sData.large >= 3 || sData.fiveSix >= 2;
+            timeSelect.add(new Option(isAnyFull ? s + " (額滿，可候補)" : s, s));
         });
-        
         updateGuestOptions();
     }
 
-function updateGuestOptions() {
+    function updateGuestOptions() {
         const dateSelect = document.getElementById('date');
         const timeSelect = document.getElementById('time');
         const guestsSel = document.getElementById('guests');
@@ -183,13 +161,13 @@ function updateGuestOptions() {
         const time = timeSelect.value;
         if (!time) return; 
 
-        // 1. 取得統計資料與上限 (維持您原本變數名稱，但對接新的 stats 結構)
+        // 還原您原本的變數名稱 booked，讓後面的 if 判斷可以正常運作
         let booked = { single: 0, small: 0, large: 0, fiveSix: 0, isFull1: false, isFull2: false };
         if (apiData && apiData.stats && apiData.stats[date] && apiData.stats[date][time]) {
             booked = apiData.stats[date][time];
         }
         
-        // 2. 取得原本的上限設定 (如果您原本 GAS 有傳 limits 則用它，否則用預設值)
+        // 還原您原本的上限變數 lim
         const lim = (apiData && apiData.limits) ? apiData.limits : { single: 2, small: 5, large: 3, fiveSix: 2 };
         
         guestsSel.innerHTML = "";
@@ -197,25 +175,25 @@ function updateGuestOptions() {
         for(let i=1; i<=6; i++) {
             let isFull = false;
             
-            // --- 依照您原本的邏輯結構，僅在 1P 和 2P 替換為新的動態判斷 ---
+            // 核心邏輯：1P 與 2P 使用 GAS 計算好的動態結果，其餘維持原本邏輯
             if(i === 1) { 
-                isFull = booked.isFull1; // 動態判定 1 人是否額滿
+                isFull = booked.isFull1; 
             } else if(i === 2) { 
-                isFull = booked.isFull2; // 動態判定 2 人是否額滿
+                isFull = booked.isFull2; 
             } else if(i >= 3 && i <= 4) { 
-                // 維持原本邏輯：大桌滿了 3-4P 就額滿
                 if(booked.large >= lim.large) isFull = true;
             } else if(i >= 5) { 
-                // 維持原本邏輯：5-6P 滿了或是大桌滿了，5-6P 選項就額滿
                 if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
             }
             
-            // --- 以下文字與設定完全不動 ---
+            // --- 這是原本消失的「候補」文字與 Dataset 設定，現在已完整還原 ---
             let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
             let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
             let option = new Option(optionText, i);
             
-            if(isFull) option.dataset.waitlist = "true";
+            if(isFull) {
+                option.dataset.waitlist = "true"; // 重要：這行不見按鈕就不會變「我要候補」
+            }
             guestsSel.add(option);
         }
         updateButtonText();
