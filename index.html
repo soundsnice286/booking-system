@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -11,255 +11,183 @@
         ul { padding-left: 20px; font-size: 0.95rem; }
         .form-group { margin-bottom: 15px; position: relative; }
         label { display: inline-block; font-weight: bold; margin-bottom: 5px; }
-        .full-hint { color: #d93025; font-size: 0.85rem; font-weight: normal; margin-left: 10px; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .checkbox-container { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; font-size: 0.9rem; }
+        .checkbox-container { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; cursor: pointer; }
         .checkbox-container input { width: auto; margin-top: 5px; }
-        button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        
-        #result-area { display: none; padding: 40px 0; }
-        #res-title { text-align: center; margin-bottom: 20px; }
-        .res-content-wrapper { text-align: left; max-width: 350px; margin: 0 auto; line-height: 1.8; font-size: 1rem; }
-        
-        .footer { text-align: center; margin-top: 60px; font-size: 0.8rem; }
-        .ig-button { display: inline-block; background-color: #f2f2f2; color: #555; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 500; margin-bottom: 15px; border: 1px solid #e0e0e0; transition: background 0.3s; }
-        .ig-button:hover { background-color: #e8e8e8; }
-        .center-btn { text-align: center; margin-top: 30px; }
+        #submit-btn { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
+        #submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+        #result-area { display: none; text-align: center; padding: 40px 20px; }
+        .success-icon { font-size: 3rem; color: #4caf50; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div id="booking-form">
-    <h2>訂位，好像不錯。</h2>
-    <div class="section notice-header">
-        <p style="font-weight: bold; color: #5D4037;">
-            只有 5/2 開放預約，其他日子無預約服務。
-        </p>
-        <h3>📝預約三步驟</h3>
-        <ol>
-            <li>閱讀須知與填寫資料。</li>
-            <li>留意 IG 訊息，收到後於 24 小時內回覆確認。</li>
-            <li>IG 收取訂位成立訊息。</li>
-        </ol>
-    </div>    
-    <div class="section">
-        <h3>📅 預約須知</h3>
-        <ul>
-            <li>訂位成立：<b>請確保 IG 帳號填寫正確，且可以接收陌生訊息。</b>收到私訊後，須在 <b>24 小時內回覆</b>，訂位才會成立。</li>
-            <li>座位保留：座位僅保留 <b>10 分鐘</b>，逾時取消預約，不另行通知。</li>
-            <li>用餐時間：僅限預約時段內，無法延長加時。</li>
-            <li>人數規範：每組最多 6 位，恕無接待 8 歲以下兒童。</li>
-            <li>座位安排：依訂位順序與人數入場選擇座位。</li>
-            <li>最低消費：每人 <b>NT.160元</b>（依訂位人數計算）。</li>
-            <li>取消政策：訂位未到，或未於餐期前一小時私訊取消，將影響訂位權益。</li>
-        </ul>
-    </div>
-    <div class="section">
-        <h3>🍽️ 用餐須知</h3>
-        <ul>
-            <li>寧靜環境：請降低說話音量並放輕腳步。</li>
-            <li>禁止外食：禁帶外食與飲料，無提供代管或垃圾丟棄服務。</li>
-            <li>僅供內用：全店無外帶服務。</li>
-        </ul>
-    </div>
-
-    <div class="form-group">
-        <label>日期</label>
-        <select id="date" onchange="updateOptions()">
-            <option value="2026-05-02" selected>2026-05-02 (週六)</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>時段</label>
-        <select id="time" onchange="updateGuestOptions()"></select>
-    </div>
-
-    <div class="form-group">
-        <label>預約人數</label>
-        <span id="waitlist-info" class="full-hint"></span>
-        <select id="guests" onchange="updateButtonText()"></select>
-    </div>
-
-    <div class="form-group">
-        <label>姓名</label>
-        <input type="text" id="name">
-    </div>
-
-    <div class="form-group">
-        <label>Instagram 帳號</label>
-        <input type="text" id="ig" placeholder="@">
-    </div>
-
-    <div class="checkbox-container">
-        <input type="checkbox" id="agree" onchange="handleAgreeChange()">
-        <label for="agree">訂位即為同意上述「訂位須知」與「用餐須知」。</label>
-    </div>
-
-    <button id="submit-btn" disabled onclick="submitForm()">確認訂位</button>
-</div>
-
-<div id="result-area">
-    <h2 id="res-title">資料送出成功。</h2>
-    <div id="res-success" class="res-content-wrapper">
-        <p>請留意 IG 私訊。<br>收到私訊後，請在 <b>24小時</b> 內回覆，<br>訂位才會正式成立。</p>
-    </div>
-    <div id="res-waitlist" class="res-content-wrapper" style="display:none;">
-        <p>您好，如有釋出位置會盡快透過ＩＧ訊息通知，<br>若沒有座位的話就不會另行通知。</p>
-        <p style="font-size: 0.85rem; color: #888; margin-top:20px;">如需取消候補可以私訊 IG 通知我們，非常感謝您。</p>
-    </div>
-    <div class="center-btn">
-        <button onclick="location.reload()" style="background:#666; width: auto; padding: 10px 40px;">返回首頁</button>
-    </div>
-</div>
-
-<div class="footer">
-    <a href="https://www.instagram.com/soundsnice.obj/" target="_blank" class="ig-button">好像不錯的 Instagram</a>
-    <p>© 2026 Sounds Nice.</p>
-</div>
-
-<script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyk20c2VJQz_TqRhV6z0WTX8HTXJqzs6Lzxz1echN7lTLWls24-atq5qO4DP5ED95vdow/exec'; 
-    let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
-
-    window.onload = async () => {
-        try {
-            const res = await fetch(GAS_URL);
-            if(res.ok) apiData = await res.json();
-        } catch (e) { console.log("使用預設配置"); }
-        updateOptions();
-    };
-
-    function updateOptions() {
-        const dateVal = document.getElementById('date').value;
-        const timeSelect = document.getElementById('time');
-        if (!dateVal || !timeSelect) return;
+    <div id="booking-form">
+        <h2>訂位，好像不錯。</h2>
         
-        timeSelect.innerHTML = '';
-        const sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
+        <h3>預約資訊</h3>
+        <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="date" onchange="updateOptions()">
+        </div>
         
-        sessions.forEach(s => {
-            // 這裡對接 GAS 傳回的 stats 結構
-            const sData = (apiData.stats && apiData.stats[dateVal] && apiData.stats[dateVal][s]) 
-                          ? apiData.stats[dateVal][s] : {isFull1:false, isFull2:false, large:0, fiveSix:0};
-            
-            // 判斷該時段是否完全額滿 (1人、2人或大桌只要有一邊滿了，就顯示候補提示)
-            const isAnyFull = sData.isFull1 || sData.isFull2 || sData.large >= 3 || sData.fiveSix >= 2;
-            timeSelect.add(new Option(isAnyFull ? s + " (額滿，可候補)" : s, s));
-        });
-        updateGuestOptions();
-    }
+        <div class="form-group">
+            <label>時段</label>
+            <select id="time" onchange="updateGuestOptions()"></select>
+        </div>
 
-function updateGuestOptions() {
-        const dateSelect = document.getElementById('date');
-        const timeSelect = document.getElementById('time');
-        const guestsSel = document.getElementById('guests');
-        if (!dateSelect || !timeSelect || !guestsSel) return;
+        <div class="form-group">
+            <label>人數</label>
+            <select id="guests" onchange="checkStatus()"></select>
+        </div>
 
-        const date = dateSelect.value;
-        const time = timeSelect.value;
-        if (!time) return; 
+        <h3>聯繫資訊</h3>
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" id="name" placeholder="請填寫姓名">
+        </div>
+        <div class="form-group">
+            <label>Instagram ID</label>
+            <input type="text" id="ig" placeholder="請填寫 IG ID（以便聯繫）">
+        </div>
 
-        // 確保讀取 apiData 中的統計資料
-        let booked = { single: 0, small: 0, large: 0, fiveSix: 0, isFull1: false, isFull2: false };
-        if (apiData && apiData.stats && apiData.stats[date] && apiData.stats[date][time]) {
-            booked = apiData.stats[date][time];
+        <label class="checkbox-container">
+            <input type="checkbox" id="agree" onchange="toggleSubmit()">
+            <span>我已閱讀並同意上述訂位須知</span>
+        </label>
+
+        <button id="submit-btn" disabled onclick="submitForm()">請先勾選同意</button>
+    </div>
+
+    <div id="result-area">
+        <div class="success-icon">✓</div>
+        <h2 id="res-title">預約申請已送出</h2>
+        <div id="res-success">
+            <p>請留意 Instagram 訊息，我們將儘速與您確認。</p>
+        </div>
+        <div id="res-waitlist" style="display:none;">
+            <p>目前此時段已額滿，您已進入候補名單。</p>
+            <p>若有空位釋出，我們將依序聯繫。</p>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxTC2QppbqwsW3hKGDr_8SzArFgBFkAjQjuZHuzxjRo1t6P5J5311pdfgZxEDjyOhBr/exec"; 
+        
+        let apiData = {
+            limits: { single: 2, small: 5, large: 3, fiveSix: 2 },
+            bookedData: {}
+        };
+
+        window.onload = async () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            document.getElementById('date').min = today;
+            try {
+                const res = await fetch(GAS_URL);
+                if (res.ok) apiData = await res.json();
+            } catch (e) { console.log("使用預設配置"); }
+            updateOptions();
+        };
+
+        function updateOptions() {
+            const dateVal = document.getElementById('date').value;
+            const timeSelect = document.getElementById('time');
+            const selectedTime = timeSelect.value;
+            timeSelect.innerHTML = '';
+
+            const sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
+            const booked = apiData.bookedData[dateVal] || {};
+            const limits = apiData.limits;
+
+            sessions.forEach(s => {
+                const b = booked[s] || { single: 0, small: 0, large: 0, fiveSix: 0 };
+                // 全時段額滿判斷：小桌和大桌都滿了
+                const isAllFull = (b.small >= limits.small && b.large >= limits.large);
+                const text = isAllFull ? s + " (該時段已額滿)" : s;
+                timeSelect.add(new Option(text, s));
+            });
+            timeSelect.value = selectedTime || sessions[0];
+            updateGuestOptions();
         }
-        
-        const lim = { single: 2, small: 5, large: 3, fiveSix: 2 };
-        
-        guestsSel.innerHTML = "";
-        
-        for(let i=1; i<=6; i++) {
-            let isFull = false;
-            
-            // --- 核心動態判斷 ---
-            if(i === 1) { 
-                isFull = booked.isFull1; 
-            } else if(i === 2) { 
-                isFull = booked.isFull2; 
-            } else if(i >= 3 && i <= 4) { 
-                if(booked.large >= lim.large) isFull = true;
-            } else if(i >= 5) { 
-                if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
+
+        function updateGuestOptions() {
+            const dateVal = document.getElementById('date').value;
+            const timeVal = document.getElementById('time').value;
+            const guestSelect = document.getElementById('guests');
+            const selectedGuest = guestSelect.value;
+            guestSelect.innerHTML = '';
+
+            const booked = (apiData.bookedData[dateVal] && apiData.bookedData[dateVal][timeVal]) || { single: 0, small: 0, large: 0, fiveSix: 0 };
+            const lim = apiData.limits;
+
+            for (let i = 1; i <= 6; i++) {
+                let isFull = false;
+                if (i === 1) {
+                    if (booked.single >= lim.single || booked.small >= lim.small) isFull = true;
+                } else if (i === 2) {
+                    if (booked.small >= lim.small) isFull = true;
+                } else if (i === 3 || i === 4) {
+                    if (booked.large >= lim.large) isFull = true;
+                } else if (i >= 5) {
+                    if (booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
+                }
+
+                const label = i + " 位" + (i === 1 ? " (吧檯座位)" : "");
+                const optionText = isFull ? label + " ：已額滿，我要候補。" : label;
+                const opt = new Option(optionText, i);
+                guestSelect.add(opt);
             }
-            
-            let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
-            // 【還原文字】確保顯示「：已額滿，我要候補。」
-            let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
-            let option = new Option(optionText, i);
-            
-            // 【還原標記】確保按鈕能辨識候補狀態
-            if(isFull) {
-                option.dataset.waitlist = "true";
-            }
-            guestsSel.add(option);
+            guestSelect.value = selectedGuest || "2";
+            checkStatus();
         }
-        updateButtonText();
-    }
-    function updateButtonText() {
-        const btn = document.getElementById('submit-btn');
-        const info = document.getElementById('waitlist-info');
-        const guestsField = document.getElementById('guests');
-        if (!guestsField) return;
-        const selected = guestsField.selectedOptions[0];
-        if (btn.innerText === "預約截止") return;
-        if (selected && selected.dataset.waitlist === "true") {
-            info.innerText = `• 該選項額滿，可候補`;
-            btn.innerText = "我要候補";
-        } else {
-            info.innerText = "";
-            btn.innerText = "確認訂位";
-        }
-    }
 
-    function handleAgreeChange() {
-        const btn = document.getElementById('submit-btn');
-        const agreeCheck = document.getElementById('agree');
-        if (btn.innerText !== "預約截止" && agreeCheck) {
+        function checkStatus() {
+            const guestSelect = document.getElementById('guests');
+            const btn = document.getElementById('submit-btn');
+            const selectedOptText = guestSelect.options[guestSelect.selectedIndex]?.text || "";
+            if (selectedOptText.includes("已額滿")) {
+                btn.innerText = "我要候補";
+            } else {
+                btn.innerText = "確認預約";
+            }
+            toggleSubmit();
+        }
+
+        function toggleSubmit() {
+            const btn = document.getElementById('submit-btn');
+            const agreeCheck = document.getElementById('agree');
             btn.disabled = !agreeCheck.checked;
         }
-    }
 
-   async function submitForm() {
-        const btn = document.getElementById('submit-btn');
-        const guestsSel = document.getElementById('guests');
-        const selectedOption = guestsSel.options[guestsSel.selectedIndex];
-        
-        const payload = {
-            date: document.getElementById('date').value,
-            time: document.getElementById('time').value,
-            guests: document.getElementById('guests').value,
-            name: document.getElementById('name').value,
-            ig: document.getElementById('ig').value
-        };
-        
-        if(!payload.name || !payload.ig) { alert("請填寫姓名與 IG"); return; }
-        
-        btn.disabled = true;
-        // 【修正點】改用選單的 dataset 判斷是否為候補
-        const isWaitlist = (selectedOption.dataset.waitlist === "true");
-        btn.innerText = "處理中...";
-        
-        try {
-            // POST 給 GAS
-            await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            
-            document.getElementById('booking-form').style.display = 'none';
-            document.getElementById('result-area').style.display = 'block';
-            
-            if(isWaitlist) {
-                document.getElementById('res-title').innerText = "已為您安排候補";
-                document.getElementById('res-success').style.display = 'none';
-                document.getElementById('res-waitlist').style.display = 'block';
+        async function submitForm() {
+            const btn = document.getElementById('submit-btn');
+            const payload = {
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                guests: document.getElementById('guests').value,
+                name: document.getElementById('name').value,
+                ig: document.getElementById('ig').value
+            };
+            if (!payload.name || !payload.ig) { alert("請填寫姓名與 Instagram ID"); return; }
+
+            const isWaitlist = (btn.innerText === "我要候補");
+            btn.disabled = true;
+            btn.innerText = "處理中...";
+            try {
+                await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                document.getElementById('booking-form').style.display = 'none';
+                document.getElementById('result-area').style.display = 'block';
+                if (isWaitlist) {
+                    document.getElementById('res-title').innerText = "已為您安排候補";
+                    document.getElementById('res-success').style.display = 'none';
+                    document.getElementById('res-waitlist').style.display = 'block';
+                }
+            } catch (e) {
+                alert("預約失敗");
+                btn.disabled = false;
             }
-        } catch(e) { 
-            alert("提交失敗，請重新整理或私訊好像不錯IG。");
-            btn.disabled = false;
-            btn.innerText = isWaitlist ? "我要候補" : "立即預約";
         }
-    }
-</script>
+    </script>
 </body>
 </html>
