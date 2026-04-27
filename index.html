@@ -34,7 +34,7 @@
     <h2>訂位，好像不錯。</h2>
     <div class="section notice-header">
         <p style="font-weight: bold; color: #5D4037;">
-            只有 5/2 開放預約，其他日子無預約服務，若客滿則現場候位。
+            只有 5/2 開放預約，其他日子無預約服務。
         </p>
         <h3>📝預約三步驟</h3>
         <ol>
@@ -120,7 +120,7 @@
 </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyb2evtncKDQ21V2IWeIsCr7ejDMqxF59eEBWJj73CKKhtJcZA4KmRMSB5VQz6SWXsxtQ/exec'; 
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzHNRJr3Z-st6sBUE7mTDy_QZppcdyLwqPTDP_KUpT11E7NCSugSsxsDdoRPfkdiHbWFA/exec'; 
     let apiData = { bookedData: {}, limits: { single: 2, small: 5, large: 3, fiveSix: 2 } };
 
     window.onload = async () => {
@@ -132,95 +132,97 @@
     };
 
     function updateOptions() {
-    const dateSelect = document.getElementById('date');
-    if (!dateSelect) return;
-    const dateVal = dateSelect.value;
-    const timeSelect = document.getElementById('time');
-    const btn = document.getElementById('submit-btn');
-    
-    timeSelect.innerHTML = '';
-    
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const currentTime = now.getHours() * 100 + now.getMinutes();
-    
-    // 你可以暫時維持 false 測試，確認選單出來後再改回判斷式
-    const shouldLock = (dateVal < todayStr) || (dateVal === todayStr && currentTime >= 1500);
+        const dateSelect = document.getElementById('date');
+        if (!dateSelect) return;
+        const dateVal = dateSelect.value;
+        const timeSelect = document.getElementById('time');
+        const btn = document.getElementById('submit-btn');
+        
+        timeSelect.innerHTML = '';
+        
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const currentTime = now.getHours() * 100 + now.getMinutes();
+        
+        // 修正後的鎖定邏輯
+        const shouldLock = (dateVal < todayStr) || (dateVal === todayStr && currentTime >= 1500);
 
-    if (shouldLock) {
-        timeSelect.add(new Option("該日預約截止", ""));
-        btn.disabled = true;
-        btn.innerText = "預約截止";
-        return;
+        if (shouldLock) {
+            timeSelect.add(new Option("該日預約截止", ""));
+            btn.disabled = true;
+            btn.innerText = "預約截止";
+            return;
+        }
+
+        btn.innerText = "確認訂位";
+        let sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
+
+        sessions.forEach(s => {
+            // 安全檢查：確保 booked 永遠有預設值，不因 API 延遲而崩潰
+            let booked = { small: 0, large: 0 };
+            if (apiData && apiData.bookedData && apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) {
+                booked = apiData.bookedData[dateVal][s];
+            }
+            
+            const limits = (apiData && apiData.limits) ? apiData.limits : { small: 5, large: 3 };
+            const isFull = (booked.small >= limits.small && booked.large >= limits.large);
+            
+            timeSelect.add(new Option(isFull ? `${s} (額滿，可候補)` : s, s));
+        });
+        
+        updateGuestOptions();
     }
 
-    btn.innerText = "確認訂位";
-    let sessions = ["16:30~19:00", "19:15~21:45", "22:00~00:30"];
+    function updateGuestOptions() {
+        const dateSelect = document.getElementById('date');
+        const timeSelect = document.getElementById('time');
+        const guestsSel = document.getElementById('guests');
+        if (!dateSelect || !timeSelect || !guestsSel) return;
 
-    sessions.forEach(s => {
-        // --- 核心安全修正：確保 booked 永遠有物件，不會 undefined ---
-        let booked = { small: 0, large: 0 };
-        if (apiData && apiData.bookedData && apiData.bookedData[dateVal] && apiData.bookedData[dateVal][s]) {
-            booked = apiData.bookedData[dateVal][s];
+        const date = dateSelect.value;
+        const time = timeSelect.value;
+        
+        if (!time) return; 
+
+        // 安全檢查：確保讀取 bookedData 時不會因為 undefined 崩潰
+        let booked = { single: 0, small: 0, large: 0, fiveSix: 0 };
+        if (apiData && apiData.bookedData && apiData.bookedData[date] && apiData.bookedData[date][time]) {
+            booked = apiData.bookedData[date][time];
         }
         
-        // 確保 limits 也有預設值
-        const limits = (apiData && apiData.limits) ? apiData.limits : { small: 5, large: 3 };
-        const isFull = (booked.small >= limits.small && booked.large >= limits.large);
+        const lim = (apiData && apiData.limits) ? apiData.limits : { single: 2, small: 5, large: 3, fiveSix: 2 };
         
-        timeSelect.add(new Option(isFull ? `${s} (額滿，可候補)` : s, s));
-    });
-    
-    updateGuestOptions();
-}
-   function updateGuestOptions() {
-    const date = document.getElementById('date').value;
-    const time = document.getElementById('time').value;
-    const guestsSel = document.getElementById('guests');
-    
-    // 如果還沒選時段，就先清空人數選單並跳出
-    if (!time || !guestsSel) return; 
-
-    // --- 核心修正：多層檢查 apiData 結構，避免 undefined 崩潰 ---
-    let booked = { single: 0, small: 0, large: 0, fiveSix: 0 };
-    if (apiData && apiData.bookedData && apiData.bookedData[date] && apiData.bookedData[date][time]) {
-        booked = apiData.bookedData[date]; // 這裡要特別注意 GAS 回傳的層級
-        // 如果你的 getBookingStats 回傳結構是 bookedData[date][time]，則用下一行：
-        booked = apiData.bookedData[date][time];
-    }
-    
-    // 確保 limits 永遠有預設值 [cite: 52]
-    const lim = (apiData && apiData.limits) ? apiData.limits : { single: 2, small: 5, large: 3, fiveSix: 2 };
-    
-    guestsSel.innerHTML = "";
-    
-    for(let i=1; i<=6; i++) {
-        let isFull = false;
-        // 判斷各人數級別是否額滿 [cite: 63, 66]
-        if(i === 1) { 
-            if(booked.single >= lim.single || booked.small >= lim.small) isFull = true;
-        } else if(i === 2) { 
-            if(booked.small >= lim.small) isFull = true;
-        } else if(i >= 3 && i <= 4) { 
-            if(booked.large >= lim.large) isFull = true;
-        } else if(i >= 5) { 
-            if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
+        guestsSel.innerHTML = "";
+        
+        for(let i=1; i<=6; i++) {
+            let isFull = false;
+            // 滿位判斷邏輯保持完全不變
+            if(i === 1) { 
+                if(booked.single >= lim.single || booked.small >= lim.small) isFull = true;
+            } else if(i === 2) { 
+                if(booked.small >= lim.small) isFull = true;
+            } else if(i >= 3 && i <= 4) { 
+                if(booked.large >= lim.large) isFull = true;
+            } else if(i >= 5) { 
+                if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
+            }
+            
+            let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
+            let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
+            let option = new Option(optionText, i);
+            
+            if(isFull) option.dataset.waitlist = "true";
+            guestsSel.add(option);
         }
-        
-        let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
-        let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
-        let option = new Option(optionText, i);
-        
-        if(isFull) option.dataset.waitlist = "true";
-        guestsSel.add(option);
+        updateButtonText();
     }
-    updateButtonText();
-}
 
     function updateButtonText() {
         const btn = document.getElementById('submit-btn');
         const info = document.getElementById('waitlist-info');
-        const selected = document.getElementById('guests').selectedOptions[0];
+        const guestsField = document.getElementById('guests');
+        if (!guestsField) return;
+        const selected = guestsField.selectedOptions[0];
         if (btn.innerText === "預約截止") return;
         if (selected && selected.dataset.waitlist === "true") {
             info.innerText = `• 該選項額滿，可候補`;
@@ -233,8 +235,9 @@
 
     function handleAgreeChange() {
         const btn = document.getElementById('submit-btn');
-        if (btn.innerText !== "預約截止") {
-            btn.disabled = !document.getElementById('agree').checked;
+        const agreeCheck = document.getElementById('agree');
+        if (btn.innerText !== "預約截止" && agreeCheck) {
+            btn.disabled = !agreeCheck.checked;
         }
     }
 
