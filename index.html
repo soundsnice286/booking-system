@@ -151,7 +151,7 @@
         updateGuestOptions();
     }
 
-    function updateGuestOptions() {
+  function updateGuestOptions() {
         const dateSelect = document.getElementById('date');
         const timeSelect = document.getElementById('time');
         const guestsSel = document.getElementById('guests');
@@ -161,13 +161,13 @@
         const time = timeSelect.value;
         if (!time) return; 
 
-        // 還原您原本的變數名稱 booked，讓後面的 if 判斷可以正常運作
+        // 1. 回傳資料對接：確保變數 booked 存在
         let booked = { single: 0, small: 0, large: 0, fiveSix: 0, isFull1: false, isFull2: false };
         if (apiData && apiData.stats && apiData.stats[date] && apiData.stats[date][time]) {
             booked = apiData.stats[date][time];
         }
         
-        // 還原您原本的上限變數 lim
+        // 2. 上限設定：維持原變數 lim
         const lim = (apiData && apiData.limits) ? apiData.limits : { single: 2, small: 5, large: 3, fiveSix: 2 };
         
         guestsSel.innerHTML = "";
@@ -175,24 +175,27 @@
         for(let i=1; i<=6; i++) {
             let isFull = false;
             
-            // 核心邏輯：1P 與 2P 使用 GAS 計算好的動態結果，其餘維持原本邏輯
+            // --- 核心改動：1P 與 2P 直接讀取 GAS 算好的 isFull 結果 ---
             if(i === 1) { 
                 isFull = booked.isFull1; 
             } else if(i === 2) { 
                 isFull = booked.isFull2; 
             } else if(i >= 3 && i <= 4) { 
+                // 維持您原本的邏輯：大桌滿了就額滿
                 if(booked.large >= lim.large) isFull = true;
             } else if(i >= 5) { 
+                // 維持您原本的邏輯：5-6位或大桌滿了就額滿
                 if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
             }
             
-            // --- 這是原本消失的「候補」文字與 Dataset 設定，現在已完整還原 ---
+            // --- 完全還原您的文字與 Dataset 設定 ---
             let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
             let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
             let option = new Option(optionText, i);
             
+            // 關鍵：這行沒寫，按鈕文字就不會變「我要候補」
             if(isFull) {
-                option.dataset.waitlist = "true"; // 重要：這行不見按鈕就不會變「我要候補」
+                option.dataset.waitlist = "true";
             }
             guestsSel.add(option);
         }
