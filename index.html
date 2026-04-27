@@ -183,29 +183,34 @@ function updateGuestOptions() {
         const time = timeSelect.value;
         if (!time) return; 
 
-        // 1. 取得統計資料（對應 GAS 傳回的 stats 結構）
-        let s = { single: 0, small: 0, large: 0, fiveSix: 0, isFull1: false, isFull2: false };
+        // 1. 取得統計資料與上限 (維持您原本變數名稱，但對接新的 stats 結構)
+        let booked = { single: 0, small: 0, large: 0, fiveSix: 0, isFull1: false, isFull2: false };
         if (apiData && apiData.stats && apiData.stats[date] && apiData.stats[date][time]) {
-            s = apiData.stats[date][time];
+            booked = apiData.stats[date][time];
         }
+        
+        // 2. 取得原本的上限設定 (如果您原本 GAS 有傳 limits 則用它，否則用預設值)
+        const lim = (apiData && apiData.limits) ? apiData.limits : { single: 2, small: 5, large: 3, fiveSix: 2 };
         
         guestsSel.innerHTML = "";
         
         for(let i=1; i<=6; i++) {
             let isFull = false;
             
-            // --- 這裡改為你要求的動態邏輯 ---
+            // --- 依照您原本的邏輯結構，僅在 1P 和 2P 替換為新的動態判斷 ---
             if(i === 1) { 
-                isFull = s.isFull1; // 判斷 1 人是否滿 2 組
+                isFull = booked.isFull1; // 動態判定 1 人是否額滿
             } else if(i === 2) { 
-                isFull = s.isFull2; // 判斷 2 人是否滿位 (動態: 1人有則4組滿，1人無則5組滿)
+                isFull = booked.isFull2; // 動態判定 2 人是否額滿
             } else if(i >= 3 && i <= 4) { 
-                isFull = (s.large >= 3); // 大桌維持 3 組
+                // 維持原本邏輯：大桌滿了 3-4P 就額滿
+                if(booked.large >= lim.large) isFull = true;
             } else if(i >= 5) { 
-                isFull = true; // 5人以上預設候補，維持原樣
+                // 維持原本邏輯：5-6P 滿了或是大桌滿了，5-6P 選項就額滿
+                if(booked.fiveSix >= lim.fiveSix || booked.large >= lim.large) isFull = true;
             }
             
-            // --- 以下完全維持你原本的文字設定 ---
+            // --- 以下文字與設定完全不動 ---
             let label = i + " 位" + (i===1 ? " (吧檯座位)" : "");
             let optionText = isFull ? label + " ：已額滿，我要候補。" : label;
             let option = new Option(optionText, i);
